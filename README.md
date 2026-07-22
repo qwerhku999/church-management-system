@@ -1,251 +1,292 @@
-MinistryFlow — Church Management System API
-https://img.shields.io/badge/Node.js-Backend-green https://img.shields.io/badge/Express.js-API-black https://img.shields.io/badge/MongoDB-Database-green https://img.shields.io/badge/Auth-JWT-orange
+# MinistryFlow — Church Management System
 
-MinistryFlow is an API‑first, production‑grade backend for church operations. Built with Node.js, Express, and MongoDB, this repository provides secure, extensible REST APIs for managing members, ministries, attendance, events, donations, announcements, visitors, prayer requests, reports, and administrative workflows.
+MinistryFlow is a modern Church Management System designed to help churches manage their daily operations through a centralized digital platform.
 
-Overview
-Purpose  
-Provide a single, secure API surface for church administrators, pastors, staff, ministry leaders, volunteers, and finance teams to manage people, programs, and giving.
+The system provides tools for managing members, ministries, attendance, events, donations, announcements, visitors, and administrative activities. It is built with a scalable architecture separating the frontend application from a secure backend API.
 
-Design goals
+MinistryFlow aims to simplify church administration, improve record keeping, and provide church leaders with better insights into their community.
 
-API first and frontend agnostic
+## Project Overview
 
-Secure by default with role based access control
+MinistryFlow is built as a full-stack application consisting of:
 
-Modular and extensible architecture for rapid feature development
+* Frontend: A modern web application built with Next.js and TypeScript.
+* Backend: A RESTful API built with Node.js, Express.js, and MongoDB.
 
-Consistent JSON responses and centralized error handling
+The system follows a modular architecture to allow future expansion into a complete church management SaaS platform.
 
-Production readiness with logging, validation, and documentation
+## Key Features
 
-Key Features
-Authentication and Security
+### Member Management
 
-JWT access tokens and refresh tokens with rotation
+* Create, update, and manage church member profiles.
+* Track membership status and membership types.
+* Store member contact information and personal details.
+* Search and filter members.
+* Generate unique member identification numbers.
 
-Role based authorization with fine grained permissions
+### Ministry Management
 
-Password hashing with bcrypt and secure token storage
+* Create and manage different church ministries.
+* Assign ministry leaders and co-leaders.
+* Add members to ministries.
+* Track ministry categories and activities.
 
-Helmet, CORS, rate limiting, and input validation
+### Attendance Management
 
-Audit logging for sensitive operations
+* Record attendance for church services and events.
+* Track members, visitors, and attendance trends.
+* Generate attendance statistics.
 
-Core Domain
+### Event Management
 
-Members full CRUD, search, filtering, and statistics
+* Create and manage church events.
+* Track event details and schedules.
+* Manage event participation.
 
-Ministries management and leader assignment
+### Finance and Donations
 
-Attendance recording for members and visitors with analytics
+* Record donations and financial transactions.
+* Track church financial activities.
+* Generate reports for administrative review.
 
-Events scheduling, RSVPs, and capacity management
+### Communication and Administration
 
-Donations and finance records with reporting and exports
+* Manage announcements.
+* Handle visitor records.
+* Manage prayer requests.
+* Store important church documents.
+* Maintain administrative records.
 
-Visitors, prayer requests, announcements, documents, and reports
+## Technology Stack
 
-Operational
+## Frontend
 
-Centralized error handling and structured logging with Winston
+* Next.js
+* React
+* TypeScript
+* Tailwind CSS
+* Modern component-based architecture
 
-Swagger OpenAPI documentation and Postman collection included
+## Backend
 
-Pagination, filtering, sorting, and server side search on list endpoints
+* Node.js
+* Express.js
+* MongoDB Atlas
+* Mongoose ODM
+* JWT Authentication
+* bcrypt Password Hashing
+* Express Validator
+* Helmet Security Middleware
+* CORS
+* Morgan Logging
 
-Background jobs for email and exports
+## Database
 
-Tech Stack and Architecture
-Tech Stack
+MinistryFlow uses MongoDB with Mongoose for database management.
 
-Layer	Technology
-Runtime	Node.js
-Framework	Express.js
-Database	MongoDB Atlas
-ODM	Mongoose
-Auth	JWT with refresh tokens
-Validation	express-validator or Joi
-Logging	Winston and Morgan
-Security	bcrypt, Helmet, rate-limit, input sanitization
+The database stores:
 
+* Users
+* Members
+* Ministries
+* Attendance records
+* Events
+* Donations
+* Announcements
+* Visitors
+* Documents
+* Prayer requests
 
-Architecture Principles
+## Project Structure
 
-Separation of concerns: Routes → Controllers → Services → Models
+ministryflow/
 
-Middleware driven: authentication, authorization, validation, pagination, error handling
+backend/
 
-Consistent response envelope for all endpoints:
+* API server
+* Database models
+* Controllers
+* Routes
+* Authentication
+* Business logic
+* Security middleware
 
-json
-{ "success": true, "message": "Operation successful", "data": {} }
-{ "success": false, "message": "Error message", "error": {} }
-Extensible modules: each domain area is self contained and testable
+frontend/
 
-Project Structure
-Code
-backend
-│
-├── config
-│   └── database.js
-│
-├── controllers
-│
-├── middleware
-│   ├── auth.js
-│   ├── authorize.js
-│   ├── errorHandler.js
-│   └── validate.js
-│
-├── models
-│
-├── routes
-│
-├── services
-│
-├── validators
-│
-├── utils
-│
-├── jobs
-│
-├── docs
-│   ├── openapi.yaml
-│   └── postman_collection.json
-│
-├── tests
-│
-├── app.js
-├── server.js
-├── package.json
-└── .env
-Folder responsibilities
+* User interface
+* Dashboard pages
+* Client-side components
+* Frontend application logic
 
-controllers: HTTP handlers and Swagger JSDoc comments
+## Backend Architecture
 
-services: business logic and database interactions
+The backend follows a structured architecture:
 
-models: Mongoose schemas and indexes
+Routes → Controllers → Services → Models
 
-validators: request validation and sanitization rules
+This approach improves:
 
-middleware: auth, RBAC, error handling, pagination, logging
+* Maintainability
+* Scalability
+* Code organization
+* Future feature development
 
-utils: pagination builder, filter parser, email helpers
+## Security Features
 
-jobs: background workers and scheduled tasks
+The system includes:
 
-Getting Started
-Prerequisites
+* JWT-based authentication
+* Role-based access control
+* Password encryption using bcrypt
+* Secure HTTP headers using Helmet
+* Input validation
+* Error handling middleware
+* Protected API routes
 
-Node.js 18 or later
+## Getting Started
 
-npm or yarn
+## Prerequisites
 
-MongoDB Atlas account or local MongoDB instance
+Before running MinistryFlow, ensure you have:
 
-Git
+* Node.js installed
+* npm installed
+* MongoDB Atlas account or local MongoDB installation
+* Git installed
 
-Environment
-Create a .env file in the backend folder with these variables:
+## Installation
 
-env
-PORT=5000
-MONGO_URI="mongodb+srv://<username>:<password>@cluster.mongodb.net/ministryflow"
-JWT_SECRET=your_jwt_secret
-JWT_REFRESH_SECRET=your_refresh_secret
-JWT_EXPIRE=15m
-JWT_REFRESH_EXPIRE=30d
-FRONTEND_ORIGIN=http://localhost:5173
-NODE_ENV=development
-Install and run
+Clone the repository:
 
-bash
-# from repository root or backend folder
+git clone [https://github.com/qwerhku999/church-management-system.git](https://github.com/qwerhku999/church-management-system.git)
+
+Navigate into the project:
+
+cd ministryflow
+
+## Backend Setup
+
+Navigate to the backend folder:
+
 cd backend
+
+Install dependencies:
+
 npm install
 
-# development
+Create a .env file inside the backend folder:
+
+PORT=5000
+
+MONGODB_URI=your_mongodb_connection_string
+
+JWT_SECRET=your_secret_key
+
+Start the backend server:
+
 npm run dev
 
-# production
-npm start
-Useful npm scripts
+The backend API will run on:
 
-json
-{
-  "dev": "nodemon server.js --watch src --watch config",
-  "start": "node server.js",
-  "lint": "eslint .",
-  "test": "jest --runInBand"
-}
-API documentation
+[http://localhost:5000](http://localhost:5000)
 
-Swagger UI: GET /api/docs
+## Frontend Setup
 
-Postman collection: docs/postman_collection.json (import into Postman)
+Navigate to the frontend folder:
 
-Authentication flow
+cd frontend
 
-Login: POST /api/auth/login returns accessToken and refreshToken
+Install dependencies:
 
-Refresh: POST /api/auth/refresh-token rotates refresh tokens and returns a new access token
+npm install
 
-Protected routes: require Authorization: Bearer <accessToken> header
+Start the frontend application:
 
-Security and Deployment
-Security best practices
+npm run dev
 
-Hash passwords with bcrypt and use strong salt rounds
+The frontend application will run on:
 
-Use short lived access tokens and rotate refresh tokens on use
+[http://localhost:3000](http://localhost:3000)
 
-Store refresh tokens hashed in the database and revoke on reuse
+## API Development
 
-Enforce HTTPS in production and restrict CORS to trusted origins
+The backend provides REST API endpoints for:
 
-Rate limit authentication endpoints and sanitize inputs
+* Authentication
+* Users
+* Members
+* Ministries
+* Attendance
+* Events
+* Donations
+* Announcements
+* Visitors
+* Reports
 
-Deployment recommendations
+API documentation and testing tools will be added as development continues.
 
-Containerize with Docker and deploy to Kubernetes or a managed platform
+## Current Development Status
 
-Use environment variables or a secrets manager for production secrets
+MinistryFlow is currently under active development.
 
-Use MongoDB Atlas for managed backups and high availability
+Completed:
 
-Monitoring
+* Backend project structure
+* MongoDB database connection
+* User authentication foundation
+* Member management module
+* Ministry management module
+* Attendance module foundation
+* Event and finance module foundations
+* API architecture setup
 
-Structured logs with Winston and log rotation
+In Progress:
 
-Integrate Sentry for error tracking and a log aggregator for metrics
+* Frontend dashboard development
+* Complete authentication flow
+* Advanced reporting
+* Role-based permissions
+* API documentation
+* Automated testing
 
-Add health check endpoints for readiness and liveness probes
+## Future Improvements
 
-Contributing and License
-How to contribute
+Planned improvements include:
 
-Fork the repository
+* Complete admin dashboard
+* Mobile application support
+* Real-time notifications
+* Email and SMS communication
+* Advanced analytics dashboard
+* Automated backups
+* Cloud deployment
+* Multi-church support
 
-Create a feature branch
+## Contribution
 
-bash
-git checkout -b feature/your-feature
-Commit changes with clear messages
+Contributions are welcome.
 
-bash
-git commit -m "feat: add feature description"
-Push branch and open a pull request
+To contribute:
 
-Code standards
+1. Create a feature branch.
+2. Make your changes.
+3. Test your changes.
+4. Submit a pull request.
 
-Include tests for new features and ensure CI passes
+## License
 
-Follow ESLint rules and repository formatting conventions
+This project is currently under development.
 
-License
-This project is licensed under the MIT License. Add a LICENSE file to the repository.
+License information will be added after the project reaches a stable release.
 
-Author
-Nana Kwafo Ammonoh
+## Author
+
+Developed by Nana Kwafo Isaiah Ammonoh
+
+GitHub:
+[https://github.com/qwerhku999](https://github.com/qwerhku999)
+
+---
+
+This version matches your current project structure (`frontend + backend`) and does not pretend features are finished when they are not. It will look professional on GitHub while still being honest about the development stage.
