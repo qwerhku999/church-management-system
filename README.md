@@ -288,5 +288,3 @@ GitHub:
 [https://github.com/qwerhku999](https://github.com/qwerhku999)
 
 ---
-
-This version matches your current project structure (`frontend + backend`) and does not pretend features are finished when they are not. It will look professional on GitHub while still being honest about the development stage.
