@@ -1,1 +1,105 @@
 @import "tailwindcss";
+
+:root {
+  /* Brand */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+
+  /* Backgrounds */
+  --bg: #070b17;
+  --surface: #0f172a;
+  --surface-2: #131d33;
+  --surface-hover: #1b2845;
+
+  /* Text */
+  --text: #f8fafc;
+  --muted: #94a3b8;
+
+  /* Borders */
+  --border: rgba(255, 255, 255, 0.06);
+
+  /* Status */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+
+  /* Shadow */
+  --shadow:
+    0 10px 35px rgba(0, 0, 0, 0.35);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top right,
+      rgba(99, 102, 241, .10),
+      transparent 40%),
+    radial-gradient(circle at bottom left,
+      rgba(59, 130, 246, .08),
+      transparent 35%),
+    var(--bg);
+
+  color: var(--text);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #24304f;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #32436e;
+}
+
+::selection {
+  background: rgba(99, 102, 241, .35);
+}

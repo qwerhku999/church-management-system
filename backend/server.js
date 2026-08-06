@@ -1,13 +1,20 @@
+// ===============================
+// Fix MongoDB Atlas SRV DNS Issue
+// ===============================
+
 const dns = require("dns");
 
-dns.setServers([
-  "8.8.8.8",
-  "8.8.4.4"
-]);
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
-require("dns").setDefaultResultOrder("ipv4first");
+// ===============================
+// Load and Validate Environment
+// ===============================
+
 require("dotenv").config();
 
+const { validateEnv } = require("./config/env");
+
+validateEnv();
 
 // ===============================
 // Register Mongoose Models
@@ -16,7 +23,8 @@ require("dotenv").config();
 require("./models/User");
 require("./models/Member");
 require("./models/Ministry");
-
+require("./models/Event");
+require("./models/Attendance");
 
 // ===============================
 // Load App
@@ -25,9 +33,7 @@ require("./models/Ministry");
 const app = require("./app");
 const connectDB = require("./config/database");
 
-
 const PORT = process.env.PORT || 5000;
-
 
 // ===============================
 // Connect MongoDB
@@ -35,15 +41,13 @@ const PORT = process.env.PORT || 5000;
 
 connectDB();
 
-
 // ===============================
 // Start Server
 // ===============================
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 MinistryFlow API running on port ${PORT}`);
+  console.log(`MinistryFlow API running on port ${PORT}`);
 });
-
 
 // ===============================
 // Handle Unhandled Promise Rejections
@@ -57,17 +61,14 @@ process.on("unhandledRejection", (err) => {
   });
 });
 
-
 // ===============================
 // Handle Uncaught Exceptions
 // ===============================
 
 process.on("uncaughtException", (err) => {
   console.error("Uncaught Exception:", err);
-
   process.exit(1);
 });
-
 
 // ===============================
 // Graceful Shutdown

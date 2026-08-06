@@ -2,59 +2,138 @@ const express = require("express");
 
 const router = express.Router();
 
-const attendanceController = require("../controllers/attendanceController");
+const {
+  getAttendance,
+  getAttendanceById,
+  getAttendanceStats,
+  createAttendance,
+  updateAttendance,
+  deleteAttendance,
+} = require("../controllers/attendanceController");
 
-const { protect, authorize } = require("../middleware/auth");
+const {
+  protect,
+  authorize,
+} = require("../middleware/auth");
 
 
-// All attendance routes require authentication
+// =====================================
+// All attendance routes require login
+// =====================================
+
 router.use(protect);
 
 
-// GET all attendance records
-router.get(
-  "/",
-  attendanceController.getAttendance
-);
 
+// =====================================
+// GET Attendance Statistics
+// GET /api/attendance/stats
+// =====================================
 
-// GET attendance statistics
 router.get(
   "/stats",
-  authorize("super_admin", "admin", "pastor"),
-  attendanceController.getAttendanceStats
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor"
+  ),
+  getAttendanceStats
 );
 
 
-// GET single attendance record
+
+// =====================================
+// GET All Attendance Records
+// GET /api/attendance
+// =====================================
+
+router.get(
+  "/",
+  getAttendance
+);
+
+
+
+// =====================================
+// GET Single Attendance Record
+// GET /api/attendance/:id
+// =====================================
+
 router.get(
   "/:id",
-  attendanceController.getAttendanceRecord
+  getAttendanceById
 );
 
 
-// CREATE attendance record
+
+// =====================================
+// CREATE Attendance Record
+// POST /api/attendance
+// =====================================
+
 router.post(
   "/",
-  authorize("super_admin", "admin", "pastor", "secretary"),
-  attendanceController.createAttendance
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor",
+    "secretary"
+  ),
+  createAttendance
 );
 
 
-// UPDATE attendance record
+
+// =====================================
+// UPDATE Attendance Record
+// PUT /api/attendance/:id
+// =====================================
+
 router.put(
   "/:id",
-  authorize("super_admin", "admin", "pastor", "secretary"),
-  attendanceController.updateAttendance
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor",
+    "secretary"
+  ),
+  updateAttendance
 );
 
 
-// DELETE attendance record
+
+// =====================================
+// PATCH Attendance Record
+// PATCH /api/attendance/:id
+// =====================================
+
+router.patch(
+  "/:id",
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor",
+    "secretary"
+  ),
+  updateAttendance
+);
+
+
+
+// =====================================
+// DELETE Attendance Record
+// DELETE /api/attendance/:id
+// =====================================
+
 router.delete(
   "/:id",
-  authorize("super_admin", "admin"),
-  attendanceController.deleteAttendance
+  authorize(
+    "super_admin",
+    "admin"
+  ),
+  deleteAttendance
 );
+
 
 
 module.exports = router;

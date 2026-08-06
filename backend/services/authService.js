@@ -4,6 +4,16 @@ const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
 const logger = require('../utils/logger');
 
+const PUBLIC_REGISTRATION_ROLES = ['member', 'volunteer'];
+
+const getPublicRegistrationRole = (requestedRole) => {
+  if (PUBLIC_REGISTRATION_ROLES.includes(requestedRole)) {
+    return requestedRole;
+  }
+
+  return 'member';
+};
+
 const generateAccessToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '15m',
@@ -18,21 +28,27 @@ const generateRefreshToken = (userId) => {
 
 const register = async (userData) => {
   const { firstName, lastName, email, password, role } = userData;
+  const normalizedEmail = email.toLowerCase();
 
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email: normalizedEmail });
   if (existingUser) {
     const error = new Error('Email already registered.');
     error.statusCode = 409;
     throw error;
   }
 
-  const user = await User.create({ firstName, lastName, email, password, role: role || 'member' });
+  const user = await User.create({
+    firstName,
+    lastName,
+    email: normalizedEmail,
+    password,
+    role: getPublicRegistrationRole(role),
+  });
 
   const accessToken = generateAccessToken(user._id);
   const refreshToken = generateRefreshToken(user._id);
 
   user.refreshTokens.push({ token: refreshToken });
-  user.lastLogin = new Date();
   await user.save();
 
   return {
@@ -43,7 +59,9 @@ const register = async (userData) => {
 };
 
 const login = async (email, password, ipAddress, userAgent) => {
-  const user = await User.findOne({ email }).select('+password +refreshTokens');
+  const user = await User.findOne({
+    email: email.toLowerCase(),
+  }).select('+password +refreshTokens');
 
   if (!user || !(await user.comparePassword(password))) {
     const error = new Error('Invalid email or password.');
@@ -60,10 +78,10 @@ const login = async (email, password, ipAddress, userAgent) => {
   const accessToken = generateAccessToken(user._id);
   const refreshToken = generateRefreshToken(user._id);
 
-  // Keep only last 5 refresh tokens
   if (user.refreshTokens.length >= 5) {
-    user.refreshTokens = user.refreshTokens.slice(-4);
+    user.refreshTokens.shift();
   }
+
   user.refreshTokens.push({ token: refreshToken });
   user.lastLogin = new Date();
   await user.save();
@@ -137,7 +155,7 @@ const forgotPassword = async (email) => {
   const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
   user.passwordResetToken = hashedToken;
-  user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
   await user.save();
 
   return { user, resetToken };

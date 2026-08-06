@@ -1,5 +1,12 @@
 node_modules/
 .env
+.env.*
+!.env.example
 .next/
 dist/
 build/
+coverage/
+logs/
+*.log
+backend/uploads/
+frontend/.next/

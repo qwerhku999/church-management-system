@@ -3,66 +3,117 @@ const express = require("express");
 const router = express.Router();
 
 const ministryController = require("../controllers/ministryController");
-const { protect, authorize } = require("../middleware/auth");
-const upload = require("../middleware/upload");
+
+const {
+  protect,
+  authorize
+} = require("../middleware/auth");
 
 
 // All ministry routes require authentication
 router.use(protect);
 
 
-// Get all ministries
+// =====================================
+// GET ALL MINISTRIES
+// GET /api/ministries
+// =====================================
+
 router.get(
   "/",
   ministryController.getMinistries
 );
 
 
-// Get single ministry
+// =====================================
+// GET SINGLE MINISTRY
+// GET /api/ministries/:id
+// =====================================
+
 router.get(
   "/:id",
   ministryController.getMinistry
 );
 
 
-// Create ministry
+// =====================================
+// CREATE MINISTRY
+// POST /api/ministries
+// =====================================
+
 router.post(
   "/",
-  authorize("super_admin", "admin", "pastor"),
-  upload.single("image"),
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor",
+    "ministry_leader"
+  ),
   ministryController.createMinistry
 );
 
 
-// Update ministry
+// =====================================
+// UPDATE MINISTRY
+// PUT /api/ministries/:id
+// =====================================
+
 router.put(
   "/:id",
-  authorize("super_admin", "admin", "pastor"),
-  upload.single("image"),
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor"
+  ),
   ministryController.updateMinistry
 );
 
 
-// Delete ministry
+// =====================================
+// DELETE MINISTRY
+// DELETE /api/ministries/:id
+// =====================================
+
 router.delete(
   "/:id",
-  authorize("super_admin", "admin"),
+  authorize(
+    "super_admin",
+    "admin"
+  ),
   ministryController.deleteMinistry
 );
 
 
-// Add member to ministry
+// =====================================
+// ADD MEMBER TO MINISTRY
+// POST /api/ministries/:id/members
+// =====================================
+
 router.post(
-  "//:id/members",
-  authorize("super_admin", "admin", "pastor", "ministry_leader"),
+  "/:id/members",
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor",
+    "ministry_leader"
+  ),
   ministryController.addMember
 );
 
 
-// Remove member from ministry
+// =====================================
+// REMOVE MEMBER FROM MINISTRY
+// DELETE /api/ministries/:id/members/:memberId
+// =====================================
+
 router.delete(
-  "//:id/members/:memberId",
-  authorize("super_admin", "admin", "pastor", "ministry_leader"),
+  "/:id/members/:memberId",
+  authorize(
+    "super_admin",
+    "admin",
+    "pastor",
+    "ministry_leader"
+  ),
   ministryController.removeMember
 );
 

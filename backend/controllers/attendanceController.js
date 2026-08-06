@@ -1,108 +1,874 @@
-const Attendance = require('../models/Attendance');
-const { successResponse, paginatedResponse, getPaginationParams, getSortParams } = require('../utils/helpers');
+const Attendance = require("../models/Attendance");
+const Event = require("../models/Event");
+const Member = require("../models/Member");
 
-const getAttendance = async (req, res, next) => {
-  try {
-    const { page, limit, skip } = getPaginationParams(req.query);
-    const filter = {};
+const {
+  successResponse,
+  paginatedResponse,
+  getPaginationParams,
+} = require("../utils/helpers");
 
-    if (req.query.event) filter.event = req.query.event;
-    if (req.query.serviceType) filter.serviceType = req.query.serviceType;
-    if (req.query.startDate || req.query.endDate) {
-      filter.date = {};
-      if (req.query.startDate) filter.date.$gte = new Date(req.query.startDate);
-      if (req.query.endDate) filter.date.$lte = new Date(req.query.endDate);
-    }
 
-    const [records, total] = await Promise.all([
-      Attendance.find(filter)
-        .populate('event', 'title startDate category')
-        .populate('recordedBy', 'firstName lastName')
-        .sort({ date: -1 })
-        .skip(skip)
-        .limit(limit),
-      Attendance.countDocuments(filter),
-    ]);
 
-    return paginatedResponse(res, 'Attendance records retrieved.', records, {
-      total, page, limit, pages: Math.ceil(total / limit),
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getAttendanceRecord = async (req, res, next) => {
-  try {
-    const record = await Attendance.findById(req.params.id)
-      .populate('event', 'title startDate')
-      .populate('recordedBy', 'firstName lastName')
-      .populate('records.person');
-    if (!record) return res.status(404).json({ success: false, message: 'Attendance record not found.' });
-    return successResponse(res, 'Attendance record retrieved.', { record });
-  } catch (error) {
-    next(error);
-  }
-};
+// =====================================
+// CREATE ATTENDANCE
+// POST /api/attendance
+// =====================================
 
 const createAttendance = async (req, res, next) => {
+
   try {
-    const data = { ...req.body, recordedBy: req.user._id };
-    if (req.body.records) {
-      data.totalCount = req.body.records.filter((r) => r.status === 'present').length;
+
+
+    const {
+      event,
+      serviceType,
+      records,
+      visitorCount,
+      childrenCount,
+      onlineCount,
+      date
+    } = req.body;
+
+
+
+    if(event){
+
+      const existingEvent =
+        await Event.findById(event);
+
+
+
+      if(!existingEvent){
+
+        return res.status(404).json({
+
+          success:false,
+
+          message:"Event not found."
+
+        });
+
+      }
+
     }
-    const record = await Attendance.create(data);
-    return successResponse(res, 'Attendance recorded successfully.', { record }, 201);
-  } catch (error) {
-    next(error);
-  }
-};
 
-const updateAttendance = async (req, res, next) => {
-  try {
-    const record = await Attendance.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!record) return res.status(404).json({ success: false, message: 'Attendance record not found.' });
-    return successResponse(res, 'Attendance updated successfully.', { record });
-  } catch (error) {
-    next(error);
-  }
-};
 
-const deleteAttendance = async (req, res, next) => {
-  try {
-    const record = await Attendance.findByIdAndDelete(req.params.id);
-    if (!record) return res.status(404).json({ success: false, message: 'Attendance record not found.' });
-    return successResponse(res, 'Attendance record deleted successfully.');
-  } catch (error) {
-    next(error);
-  }
-};
 
-const getAttendanceStats = async (req, res, next) => {
-  try {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const stats = await Attendance.aggregate([
-      { $match: { date: { $gte: thirtyDaysAgo } } },
+    if(!records || !Array.isArray(records) || records.length === 0){
+
+      return res.status(400).json({
+
+        success:false,
+
+        message:"Attendance records are required."
+
+      });
+
+    }
+
+
+
+
+
+    // Validate members
+
+    const memberIds =
+      records.map(
+        item => item.person
+      );
+
+
+
+    const members =
+      await Member.find({
+
+        _id:{
+          $in:memberIds
+        }
+
+      });
+
+
+
+    if(members.length !== memberIds.length){
+
+      return res.status(404).json({
+
+        success:false,
+
+        message:"One or more members were not found."
+
+      });
+
+    }
+
+
+
+
+
+    // Calculate counts
+
+    const memberCount =
+      records.length;
+
+
+
+    const totalCount =
+      memberCount +
+      (visitorCount || 0) +
+      (childrenCount || 0) +
+      (onlineCount || 0);
+
+
+
+
+    const attendance =
+      await Attendance.create({
+
+        event,
+
+        serviceType,
+
+        memberCount,
+
+        visitorCount: visitorCount || 0,
+
+        childrenCount: childrenCount || 0,
+
+        onlineCount: onlineCount || 0,
+
+        totalCount,
+
+        records,
+
+        date: date || Date.now(),
+
+        recordedBy:req.user._id
+
+      });
+
+
+
+
+    return successResponse(
+
+      res,
+
+      "Attendance recorded successfully.",
+
       {
-        $group: {
-          _id: '$serviceType',
-          avgTotal: { $avg: '$totalCount' },
-          avgMembers: { $avg: '$memberCount' },
-          avgVisitors: { $avg: '$visitorCount' },
-          count: { $sum: 1 },
-        },
+        attendance
       },
-    ]);
-    const trend = await Attendance.find({ date: { $gte: thirtyDaysAgo } })
-      .sort({ date: 1 })
-      .select('date totalCount memberCount visitorCount serviceType');
-    return successResponse(res, 'Attendance statistics retrieved.', { stats, trend });
-  } catch (error) {
+
+      201
+
+    );
+
+
+
+  } catch(error){
+
     next(error);
+
   }
+
 };
 
-module.exports = { getAttendance, getAttendanceRecord, createAttendance, updateAttendance, deleteAttendance, getAttendanceStats };
+// =====================================
+// GET ALL ATTENDANCE
+// =====================================
+
+const getAttendance = async(req,res,next)=>{
+
+  try{
+
+
+    const {
+      page,
+      limit,
+      skip
+    } = getPaginationParams(req.query);
+
+
+
+    const filter = {};
+
+
+
+    if(req.query.event){
+
+      filter.event = req.query.event;
+
+    }
+
+
+
+    if(req.query.serviceType){
+
+      filter.serviceType = req.query.serviceType;
+
+    }
+
+
+
+    if(req.query.date){
+
+      const date = new Date(req.query.date);
+
+
+      const nextDay = new Date(date);
+
+
+      nextDay.setDate(
+        date.getDate()+1
+      );
+
+
+
+      filter.date = {
+
+        $gte:date,
+
+        $lt:nextDay
+
+      };
+
+    }
+
+
+
+
+    const [
+      attendance,
+      total
+    ] = await Promise.all([
+
+
+
+      Attendance.find(filter)
+
+      .populate(
+        "records.person",
+        "firstName lastName phone"
+      )
+
+
+      .populate(
+        "event",
+        "title startDate"
+      )
+
+
+      .populate(
+        "recordedBy",
+        "firstName lastName"
+      )
+
+
+      .sort({
+
+        date:-1
+
+      })
+
+
+      .skip(skip)
+
+
+      .limit(limit),
+
+
+
+
+      Attendance.countDocuments(filter)
+
+
+
+    ]);
+
+
+
+
+
+    return paginatedResponse(
+
+      res,
+
+      "Attendance retrieved successfully.",
+
+      attendance,
+
+      {
+
+        total,
+
+        page,
+
+        limit,
+
+        pages:Math.ceil(total/limit)
+
+      }
+
+    );
+
+
+
+  }catch(error){
+
+    next(error);
+
+  }
+
+};
+
+
+
+
+
+
+// =====================================
+// GET SINGLE ATTENDANCE
+// =====================================
+
+const getAttendanceById = async(req,res,next)=>{
+
+  try{
+
+
+    const attendance =
+
+      await Attendance.findById(req.params.id)
+
+
+
+      .populate(
+
+        "records.person",
+
+        "firstName lastName phone"
+
+      )
+
+
+
+      .populate(
+
+        "event",
+
+        "title startDate"
+
+      )
+
+
+
+      .populate(
+
+        "recordedBy",
+
+        "firstName lastName"
+
+      );
+
+
+
+
+
+    if(!attendance){
+
+      return res.status(404).json({
+
+        success:false,
+
+        message:"Attendance record not found."
+
+      });
+
+    }
+
+
+
+
+
+    return successResponse(
+
+      res,
+
+      "Attendance retrieved successfully.",
+
+      {
+        attendance
+      }
+
+    );
+
+
+
+  }catch(error){
+
+    next(error);
+
+  }
+
+};
+
+
+
+
+
+
+// =====================================
+// UPDATE ATTENDANCE
+// =====================================
+
+const updateAttendance = async(req,res,next)=>{
+
+  try{
+
+
+    const attendance =
+
+      await Attendance.findById(req.params.id);
+
+
+
+
+    if(!attendance){
+
+      return res.status(404).json({
+
+        success:false,
+
+        message:"Attendance record not found."
+
+      });
+
+    }
+
+
+
+
+    Object.assign(
+
+      attendance,
+
+      req.body
+
+    );
+
+
+
+
+
+    if(attendance.records){
+
+
+      attendance.memberCount =
+        attendance.records.length;
+
+
+
+      attendance.totalCount =
+
+        attendance.memberCount +
+
+        (attendance.visitorCount || 0) +
+
+        (attendance.childrenCount || 0) +
+
+        (attendance.onlineCount || 0);
+
+
+    }
+
+
+
+
+
+    await attendance.save();
+
+
+
+
+
+    return successResponse(
+
+      res,
+
+      "Attendance updated successfully.",
+
+      {
+        attendance
+      }
+
+    );
+
+
+
+  }catch(error){
+
+    next(error);
+
+  }
+
+};
+
+
+// =====================================
+// DELETE ATTENDANCE
+// =====================================
+
+const deleteAttendance = async(req,res,next)=>{
+
+  try{
+
+
+    const attendance =
+
+      await Attendance.findByIdAndDelete(
+        req.params.id
+      );
+
+
+
+    if(!attendance){
+
+      return res.status(404).json({
+
+        success:false,
+
+        message:"Attendance record not found."
+
+      });
+
+    }
+
+
+
+
+
+    return successResponse(
+
+      res,
+
+      "Attendance deleted successfully."
+
+    );
+
+
+
+  }catch(error){
+
+    next(error);
+
+  }
+
+};
+
+
+
+
+
+
+
+// =====================================
+// MEMBER ATTENDANCE HISTORY
+// GET /api/attendance/member/:memberId
+// =====================================
+
+const getMemberAttendance = async(req,res,next)=>{
+
+  try{
+
+
+    const records =
+
+      await Attendance.find({
+
+        "records.person":
+          req.params.memberId
+
+      })
+
+      .populate(
+
+        "event",
+
+        "title startDate"
+
+      );
+
+
+
+
+
+    let present = 0;
+
+    let absent = 0;
+
+    let late = 0;
+
+    let excused = 0;
+
+
+
+
+    records.forEach(record=>{
+
+
+      const memberRecord =
+
+        record.records.find(
+
+          item =>
+
+          item.person.toString() ===
+          req.params.memberId
+
+        );
+
+
+
+      if(memberRecord){
+
+
+        switch(memberRecord.status){
+
+
+          case "present":
+
+            present++;
+
+            break;
+
+
+
+          case "absent":
+
+            absent++;
+
+            break;
+
+
+
+          case "late":
+
+            late++;
+
+            break;
+
+
+
+          case "excused":
+
+            excused++;
+
+            break;
+
+
+        }
+
+
+      }
+
+
+    });
+
+
+
+
+
+
+    const totalServices =
+      records.length;
+
+
+
+
+    return successResponse(
+
+      res,
+
+      "Member attendance history retrieved.",
+
+      {
+
+        totalServices,
+
+        present,
+
+        absent,
+
+        late,
+
+        excused,
+
+
+        attendanceRate:
+
+          totalServices
+
+          ?
+
+          `${Math.round(
+            (present / totalServices) * 100
+          )}%`
+
+          :
+
+          "0%",
+
+
+        records
+
+      }
+
+    );
+
+
+
+  }catch(error){
+
+    next(error);
+
+  }
+
+};
+
+
+
+
+
+
+
+// =====================================
+// ATTENDANCE STATISTICS
+// =====================================
+
+const getAttendanceStats = async(req,res,next)=>{
+
+  try{
+
+
+    const totalServices =
+
+      await Attendance.countDocuments();
+
+
+
+
+
+    const result =
+
+      await Attendance.aggregate([
+
+
+        {
+
+          $unwind:"$records"
+
+        },
+
+
+        {
+
+          $group:{
+
+            _id:"$records.status",
+
+            count:{
+
+              $sum:1
+
+            }
+
+          }
+
+        }
+
+
+      ]);
+
+
+
+
+
+    const stats = {
+
+      present:0,
+
+      absent:0,
+
+      late:0,
+
+      excused:0
+
+    };
+
+
+
+
+
+    result.forEach(item=>{
+
+      stats[item._id] =
+        item.count;
+
+    });
+
+
+
+
+
+
+
+    return successResponse(
+
+      res,
+
+      "Attendance statistics retrieved.",
+
+      {
+
+        totalServices,
+
+        ...stats
+
+      }
+
+    );
+
+
+
+  }catch(error){
+
+    next(error);
+
+  }
+
+};
+
+
+
+
+
+
+
+module.exports = {
+
+  createAttendance,
+
+  getAttendance,
+
+  getAttendanceById,
+
+  updateAttendance,
+
+  deleteAttendance,
+
+  getMemberAttendance,
+
+  getAttendanceStats
+
+};

@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import "./globals.css";
+import { AuthProvider } from "@/hooks/useAuth";
 
 export const metadata: Metadata = {
-  title: "Arena Next.js PostgreSQL Starter",
-  description: "Starter template with Next.js, Drizzle, and PostgreSQL.",
+  title: {
+    default: "MinistryFlow",
+    template: "%s | MinistryFlow",
+  },
+  description: "Modern Church Management System",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <body className="bg-slate-100 text-slate-900 antialiased">{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-[var(--background)] text-[var(--text)] antialiased">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

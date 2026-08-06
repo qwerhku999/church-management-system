@@ -1,0 +1,77 @@
+import AppLayout from "@/components/layout/AppLayout";
+import DashboardGrid from "@/components/dashboard/DashboardGrid";
+import StatCard from "@/components/dashboard/StatCard";
+
+import {
+  Users,
+  Wallet,
+  CalendarDays,
+  Church,
+} from "lucide-react";
+
+export default function HomePage() {
+  return (
+    <AppLayout>
+      <section className="space-y-8">
+
+        {/* Hero */}
+
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-[var(--primary)]">
+              MINISTRYFLOW
+            </p>
+
+            <h1 className="mt-2 text-5xl font-bold tracking-tight">
+              Church Dashboard
+            </h1>
+
+            <p className="mt-3 max-w-2xl text-[15px] text-[var(--muted)]">
+              Monitor attendance, donations, ministries and church activities
+              from one centralized dashboard.
+            </p>
+          </div>
+
+          <button className="rounded-xl bg-[var(--primary)] px-6 py-3 font-semibold text-white transition hover:opacity-90">
+            + Add Member
+          </button>
+        </div>
+
+        {/* Stats */}
+
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Members"
+            value="1,284"
+            change="+18 this month"
+            icon={Users}
+          />
+
+          <StatCard
+            title="Donations"
+            value="GHS 32,450"
+            change="+12%"
+            icon={Wallet}
+          />
+
+          <StatCard
+            title="Events"
+            value="12"
+            change="3 this week"
+            icon={CalendarDays}
+          />
+
+          <StatCard
+            title="Ministries"
+            value="15"
+            change="Active"
+            icon={Church}
+          />
+        </div>
+
+        <DashboardGrid />
+
+      </section>
+    </AppLayout>
+  );
+}

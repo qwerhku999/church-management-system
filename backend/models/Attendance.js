@@ -1,74 +1,133 @@
 const mongoose = require('mongoose');
 
+
 const attendanceSchema = new mongoose.Schema({
+
   event: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event',
-    required: [true, 'Event is required'],
+    required: true,
   },
-  date: {
-    type: Date,
-    required: [true, 'Attendance date is required'],
-  },
+
+
   serviceType: {
     type: String,
-    enum: ['sunday_service', 'midweek', 'prayer_meeting', 'bible_study', 'special_service', 'youth_service', 'children_service', 'other'],
+    enum: [
+      'sunday_service',
+      'midweek_service',
+      'prayer_meeting',
+      'bible_study',
+      'event',
+      'other'
+    ],
     default: 'sunday_service',
   },
-  totalCount: {
-    type: Number,
-    default: 0,
-  },
+
+
   memberCount: {
     type: Number,
     default: 0,
   },
+
+
   visitorCount: {
     type: Number,
     default: 0,
   },
+
+
   childrenCount: {
     type: Number,
     default: 0,
   },
+
+
   onlineCount: {
     type: Number,
     default: 0,
   },
-  records: [{
-    person: {
-      type: mongoose.Schema.Types.ObjectId,
-      refPath: 'records.personModel',
-    },
-    personModel: {
-      type: String,
-      enum: ['Member', 'Visitor'],
-    },
-    status: {
-      type: String,
-      enum: ['present', 'absent', 'excused', 'late'],
-      default: 'present',
-    },
-    checkInTime: Date,
-    checkOutTime: Date,
-    notes: String,
-  }],
-  notes: String,
-  weather: String,
-  specialOccasion: String,
+
+
+  totalCount: {
+    type: Number,
+    default: 0,
+  },
+
+
+  records: [
+    {
+      person: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Member',
+        required: true,
+      },
+
+
+      status: {
+        type: String,
+        enum: [
+          'present',
+          'absent',
+          'late',
+          'excused'
+        ],
+        default: 'present',
+      },
+
+
+      notes: {
+        type: String,
+        trim: true,
+      }
+
+    }
+  ],
+
+
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+
+
   recordedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
+
+
 }, {
   timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true },
 });
 
-attendanceSchema.index({ event: 1, date: -1 });
-attendanceSchema.index({ date: -1 });
-attendanceSchema.index({ serviceType: 1 });
 
-module.exports = mongoose.model('Attendance', attendanceSchema);
+
+// Search indexes
+
+attendanceSchema.index({
+  event: 1,
+  date: -1
+});
+
+
+attendanceSchema.index({
+  serviceType: 1
+});
+
+
+attendanceSchema.index({
+  status: 1
+});
+
+
+attendanceSchema.index({
+  'records.person': 1
+});
+
+
+
+module.exports = mongoose.model(
+  'Attendance',
+  attendanceSchema
+);

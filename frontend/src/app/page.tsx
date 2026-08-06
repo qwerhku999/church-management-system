@@ -1,22 +1,73 @@
-import { db } from "@/db";
-import { sql } from "drizzle-orm";
+import AppLayout from "@/components/layout/AppLayout";
+import StatCard from "@/components/dashboard/StatCard";
+import DashboardGrid from "@/components/dashboard/DashboardGrid";
 
-export const dynamic = "force-dynamic";
+import {
+  Users,
+  CalendarDays,
+  Wallet,
+  Church,
+} from "lucide-react";
 
-export default async function HomePage() {
-  await db.execute(sql`select 1`);
-
+export default function HomePage() {
   return (
-    <main className="grid min-h-screen place-items-center px-6 py-12">
-      <section className="w-full max-w-2xl rounded-3xl bg-white p-10 shadow-[0_24px_60px_rgba(16,24,40,0.12)]">
-        <p className="m-0 text-sm uppercase tracking-[0.08em] text-slate-600">Starter template</p>
-        <h1 className="mt-4 text-[clamp(2rem,5vw,3.25rem)] font-semibold leading-[1.05] text-slate-950">
-          Arena Next.js PostgreSQL Starter
-        </h1>
-        <p className="mt-4 text-base text-slate-700">
-          Server-rendered with Next.js after a successful PostgreSQL query through Drizzle.
-        </p>
+    <AppLayout>
+      {/* Hero */}
+
+      <section className="mb-8 flex items-center justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+            MinistryFlow
+          </p>
+
+          <h1 className="mt-2 text-5xl font-bold">
+            Church Dashboard
+          </h1>
+
+          <p className="mt-4 max-w-2xl text-lg text-[var(--muted)]">
+            Monitor attendance, finances, ministries,
+            members and church activities from one place.
+          </p>
+        </div>
+
+        <button className="rounded-2xl bg-[var(--primary)] px-6 py-4 font-semibold text-white transition hover:scale-[1.02]">
+          + Add Member
+        </button>
       </section>
-    </main>
+
+      {/* Stats */}
+
+      <section className="mb-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          title="Members"
+          value="1,284"
+          subtitle="+18 this month"
+          icon={Users}
+        />
+
+        <StatCard
+          title="Donations"
+          value="GHS 32,450"
+          subtitle="+12%"
+          icon={Wallet}
+        />
+
+        <StatCard
+          title="Events"
+          value="12"
+          subtitle="This Week"
+          icon={CalendarDays}
+        />
+
+        <StatCard
+          title="Ministries"
+          value="15"
+          subtitle="Active"
+          icon={Church}
+        />
+      </section>
+
+      <DashboardGrid />
+    </AppLayout>
   );
 }
