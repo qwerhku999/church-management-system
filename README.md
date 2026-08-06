@@ -1,290 +1,307 @@
 # MinistryFlow — Church Management System
 
-MinistryFlow is a modern Church Management System designed to help churches manage their daily operations through a centralized digital platform.
-
-The system provides tools for managing members, ministries, attendance, events, donations, announcements, visitors, and administrative activities. It is built with a scalable architecture separating the frontend application from a secure backend API.
-
-MinistryFlow aims to simplify church administration, improve record keeping, and provide church leaders with better insights into their community.
-
-## Project Overview
-
-MinistryFlow is built as a full-stack application consisting of:
-
-* Frontend: A modern web application built with Next.js and TypeScript.
-* Backend: A RESTful API built with Node.js, Express.js, and MongoDB.
-
-The system follows a modular architecture to allow future expansion into a complete church management SaaS platform.
-
-## Key Features
-
-### Member Management
-
-* Create, update, and manage church member profiles.
-* Track membership status and membership types.
-* Store member contact information and personal details.
-* Search and filter members.
-* Generate unique member identification numbers.
-
-### Ministry Management
-
-* Create and manage different church ministries.
-* Assign ministry leaders and co-leaders.
-* Add members to ministries.
-* Track ministry categories and activities.
-
-### Attendance Management
-
-* Record attendance for church services and events.
-* Track members, visitors, and attendance trends.
-* Generate attendance statistics.
-
-### Event Management
-
-* Create and manage church events.
-* Track event details and schedules.
-* Manage event participation.
-
-### Finance and Donations
-
-* Record donations and financial transactions.
-* Track church financial activities.
-* Generate reports for administrative review.
-
-### Communication and Administration
-
-* Manage announcements.
-* Handle visitor records.
-* Manage prayer requests.
-* Store important church documents.
-* Maintain administrative records.
-
-## Technology Stack
-
-## Frontend
-
-* Next.js
-* React
-* TypeScript
-* Tailwind CSS
-* Modern component-based architecture
-
-## Backend
-
-* Node.js
-* Express.js
-* MongoDB Atlas
-* Mongoose ODM
-* JWT Authentication
-* bcrypt Password Hashing
-* Express Validator
-* Helmet Security Middleware
-* CORS
-* Morgan Logging
-
-## Database
-
-MinistryFlow uses MongoDB with Mongoose for database management.
-
-The database stores:
-
-* Users
-* Members
-* Ministries
-* Attendance records
-* Events
-* Donations
-* Announcements
-* Visitors
-* Documents
-* Prayer requests
-
-## Project Structure
-
-ministryflow/
-
-backend/
-
-* API server
-* Database models
-* Controllers
-* Routes
-* Authentication
-* Business logic
-* Security middleware
-
-frontend/
-
-* User interface
-* Dashboard pages
-* Client-side components
-* Frontend application logic
-
-## Backend Architecture
-
-The backend follows a structured architecture:
-
-Routes → Controllers → Services → Models
-
-This approach improves:
-
-* Maintainability
-* Scalability
-* Code organization
-* Future feature development
-
-## Security Features
-
-The system includes:
-
-* JWT-based authentication
-* Role-based access control
-* Password encryption using bcrypt
-* Secure HTTP headers using Helmet
-* Input validation
-* Error handling middleware
-* Protected API routes
-
-## Getting Started
-
-## Prerequisites
-
-Before running MinistryFlow, ensure you have:
-
-* Node.js installed
-* npm installed
-* MongoDB Atlas account or local MongoDB installation
-* Git installed
-
-## Installation
-
-Clone the repository:
-
-git clone [https://github.com/qwerhku999/church-management-system.git](https://github.com/qwerhku999/church-management-system.git)
-
-Navigate into the project:
-
-cd ministryflow
-
-## Backend Setup
-
-Navigate to the backend folder:
-
-cd backend
-
-Install dependencies:
-
-npm install
-
-Create a .env file inside the backend folder:
-
-PORT=5000
-
-MONGODB_URI=your_mongodb_connection_string
-
-JWT_SECRET=your_secret_key
-
-Start the backend server:
-
-npm run dev
-
-The backend API will run on:
-
-[http://localhost:5000](http://localhost:5000)
-
-## Frontend Setup
-
-Navigate to the frontend folder:
-
-cd frontend
-
-Install dependencies:
-
-npm install
-
-Start the frontend application:
-
-npm run dev
-
-The frontend application will run on:
-
-[http://localhost:3000](http://localhost:3000)
-
-## API Development
-
-The backend provides REST API endpoints for:
-
-* Authentication
-* Users
-* Members
-* Ministries
-* Attendance
-* Events
-* Donations
-* Announcements
-* Visitors
-* Reports
-
-API documentation and testing tools will be added as development continues.
-
-## Current Development Status
-
-MinistryFlow is currently under active development.
-
-Completed:
-
-* Backend project structure
-* MongoDB database connection
-* User authentication foundation
-* Member management module
-* Ministry management module
-* Attendance module foundation
-* Event and finance module foundations
-* API architecture setup
-
-In Progress:
-
-* Frontend dashboard development
-* Complete authentication flow
-* Advanced reporting
-* Role-based permissions
-* API documentation
-* Automated testing
-
-## Future Improvements
-
-Planned improvements include:
-
-* Complete admin dashboard
-* Mobile application support
-* Real-time notifications
-* Email and SMS communication
-* Advanced analytics dashboard
-* Automated backups
-* Cloud deployment
-* Multi-church support
-
-## Contribution
-
-Contributions are welcome.
-
-To contribute:
-
-1. Create a feature branch.
-2. Make your changes.
-3. Test your changes.
-4. Submit a pull request.
-
-## License
-
-This project is currently under development.
-
-License information will be added after the project reaches a stable release.
-
-## Author
-
-Developed by Nana Kwafo Isaiah Ammonoh
-
-GitHub:
-[https://github.com/qwerhku999](https://github.com/qwerhku999)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-38B2AC?logo=tailwind-css)
+![Node.js](https://img.shields.io/badge/Node.js-18-green?logo=node.js)
+![Express.js](https://img.shields.io/badge/Express.js-4-lightgrey?logo=express)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb)
+![JWT](https://img.shields.io/badge/JWT-Auth-orange?logo=jsonwebtokens)
+![License](https://img.shields.io/badge/License-Active--Development-yellow)
+
+**MinistryFlow** is a modern Church Management System designed to help churches manage their daily operations through a centralized digital platform.
+
+The system provides comprehensive tools for managing **members**, **ministries**, **attendance**, **events**, **donations**, **finances**, **announcements**, **visitors**, **prayer requests**, **documents**, and **administrative activities**.
+
+Built with a scalable full-stack architecture, MinistryFlow separates the frontend application from a secure backend API, allowing future expansion into a complete church management SaaS platform.
+
+The primary goal of MinistryFlow is to **simplify church administration**, **improve record keeping**, **reduce manual processes**, and **provide church leaders with meaningful insights** into their community.
 
 ---
+
+## 🚀 Project Overview
+
+MinistryFlow is a full-stack web application consisting of:
+
+### 🎨 Frontend
+A modern dashboard application built with:
+* **Framework & Languages:** Next.js 16, React 19, TypeScript
+* **Styling:** Tailwind CSS
+* **Data Visualization:** Recharts
+* **Icons:** Lucide React Icons
+* **Architecture:** Modern component-based architecture
+
+**Key Features:**
+* Admin dashboard interface
+* Data visualization and charts
+* Dynamic management pages
+* Fully responsive layouts
+* Reusable UI components
+
+### ⚙️ Backend
+A RESTful API built with:
+* **Runtime:** Node.js
+* **Framework:** Express.js
+* **Database & ODM:** MongoDB Atlas, Mongoose
+* **Authentication & Security:** JWT, bcrypt, Helmet, Express Validator, CORS
+* **Logging:** Morgan
+
+**Capabilities:**
+* Authentication & authorization
+* Core business logic
+* Database operations & models
+* API communication endpoints
+* Security middleware
+
+---
+
+## ✨ Key Features
+
+### 🔐 Authentication & Users
+* **User registration** and **authentication**
+* **JWT-based** authentication
+* **Password hashing** with `bcrypt`
+* **Protected API routes**
+* **Role-based access control** foundation
+* Comprehensive **user management**
+
+### 👥 Member Management
+* **Create, update, and delete** members
+* Track **membership status** and **types**
+* Store **personal contact information** and details
+* **Search and filter** members
+* Generate **unique member numbers**
+* Maintain organized **member records**
+
+### 🏛️ Ministry Management
+* **Create and manage** church ministries
+* Assign **ministry leaders** and **co-leaders**
+* Add **members** to specific ministries
+* Track **ministry categories** and **activities**
+
+### 📊 Attendance Management
+* Record **service** and **event** attendance
+* Track **member** and **visitor** attendance
+* Monitor **attendance trends** over time
+* Generate **detailed attendance statistics**
+
+### 📅 Event Management
+* **Create and update** church events
+* Store **event details, schedules**, and **locations**
+* Manage **event participation** and **RSVPs**
+
+### 💰 Finance & Donations
+* Record **donations** and **financial transactions**
+* Track overall **church financial activities**
+* Maintain **historical finance records**
+* Generate **financial reports** for administrative review
+
+### 📢 Communication & Administration
+* **Announcements** management
+* **Visitor records** management
+* **Prayer requests** tracking
+* Secure **document storage & management**
+* **Real-time notification system**
+* **Administrative audit records**
+
+### 📈 Dashboard & Analytics
+* **Overview statistics** and **metrics**
+* Interactive **attendance analytics**
+* **Donation & financial analytics**
+* **Recent member activity feeds**
+* Data visualization components powered by **Recharts**
+
+---
+
+## 🛠️ Technology Stack
+
+| Category | Technologies |
+| :--- | :--- |
+| **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS, Recharts, Lucide React Icons |
+| **Backend** | Node.js, Express.js, JWT, bcrypt, Express Validator, Helmet, CORS, Morgan |
+| **Database** | MongoDB Atlas, Mongoose ODM |
+
+---
+
+## 🗄️ Database Schema / Collections
+
+MinistryFlow utilizes **MongoDB** with **Mongoose ODM** to store:
+
+* `Users`
+* `Members`
+* `Ministries`
+* `Attendance`
+* `Events`
+* `Donations`
+* `Finance Records`
+* `Announcements`
+* `Visitors`
+* `Prayer Requests`
+* `Documents`
+* `Notifications`
+
+---
+
+## 📁 Project Structure
+
+```text
+ministryflow/
+│
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   └── server.js
+│
+└── frontend/
+    ├── src/
+    │   ├── app/
+    │   ├── components/
+    │   ├── context/
+    │   ├── hooks/
+    │   ├── services/
+    │   ├── lib/
+    │   └── styles/
+    └── package.json
+
+```
+
+### Backend Architecture
+
+$$\text{Routes} \longrightarrow \text{Controllers} \longrightarrow \text{Services} \longrightarrow \text{Models} \longrightarrow \text{Database}$$
+
+---
+
+## 🏁 Getting Started
+
+### Prerequisites
+
+* **Node.js** (v18 or higher recommended)
+* **npm**
+* **Git**
+* **MongoDB Atlas** account or local MongoDB instance
+
+---
+
+### Installation
+
+1. **Clone the repository:**
+```bash
+git clone [https://github.com/qwerhku999/church-management-system.git](https://github.com/qwerhku999/church-management-system.git)
+cd ministryflow
+
+```
+
+
+2. **Backend Setup:**
+```bash
+cd backend
+npm install
+
+```
+
+
+Create a `.env` file in the `backend/` directory:
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+
+```
+
+
+Start the backend development server:
+```bash
+npm run dev
+
+```
+
+
+*Backend API runs at:* `http://localhost:5000`
+3. **Frontend Setup:**
+```bash
+cd ../frontend
+npm install
+npm run dev
+
+```
+
+
+*Frontend application runs at:* `http://localhost:3000`
+
+---
+
+## 📌 Current Development Status
+
+### ✅ Completed Features
+
+#### Backend
+
+* Express server setup & API architecture
+* MongoDB integration via Mongoose
+* User authentication system (`JWT` + `bcrypt`)
+* Security middleware (`Helmet`, `CORS`, `Validator`)
+* **Modules:** User, Member, Ministry, Attendance, Event, Donation, Finance, Visitor, Prayer Request, Announcement, Notification, Dashboard API
+
+#### Frontend
+
+* Next.js 16 setup with Tailwind CSS
+* Dashboard layout (Sidebar, Navbar)
+* Reusable UI components & cards
+* Data visualization (Attendance chart, Donation chart)
+* Recent members display component
+* Frontend service structure
+
+---
+
+### 🚧 In Progress
+
+* Complete remaining frontend feature pages
+* Complete UI authentication flow integration
+* Full API integration across all views
+* Advanced analytics dashboard
+* Role-based view switching
+* UI/UX refinements
+
+---
+
+## 🔮 Future Improvements
+
+* Mobile application support
+* Real-time notifications via WebSockets
+* Email and SMS communication system
+* Advanced AI-powered church analytics & insights
+* Automated database backups
+* Production cloud deployment
+* Multi-church tenant support (SaaS model)
+
+---
+
+## 🤝 Contribution
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a **Pull Request**
+
+---
+
+## 📄 License
+
+This project is currently under active development. License information will be updated upon the initial stable release.
+
+---
+
+## 👤 Author
+
+**Nana Kwafo Isaiah Ammonoh**
+
+* GitHub: [@qwerhku999](https://github.com/qwerhku999)
