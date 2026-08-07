@@ -20,7 +20,7 @@ interface AttendanceRecord {
 
 export default function AttendancePage() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ serviceType: "sunday_service", totalCount: "0" });
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ export default function AttendancePage() {
   const loadData = async () => {
     try {
       const [listRes, statsRes] = await Promise.all([attendanceService.list(), attendanceService.getStats()]);
-      const listData = (listRes?.data as any)?.attendance ?? listRes?.data ?? [];
+      const listData = (listRes?.data as Record<string, unknown>)?.attendance ?? listRes?.data ?? [];
       setRecords(Array.isArray(listData) ? listData : []);
       setStats(statsRes?.data ?? statsRes);
     } catch (err) {

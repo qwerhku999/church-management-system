@@ -31,7 +31,7 @@ export default function ProfilePage() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
           <Card className="flex flex-col items-center text-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500 to-blue-600 text-3xl font-bold text-white shadow-lg shadow-indigo-500/25">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] text-3xl font-bold text-white shadow-lg shadow-[var(--primary)]/25">
               {getInitials(name)}
             </div>
             <h2 className="mt-4 font-display text-xl font-bold">{name}</h2>

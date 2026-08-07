@@ -1,38 +1,50 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, ArrowRight, ArrowLeft, ShieldCheck } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { useAuth } from "@/hooks/useAuth";
+import { authService } from "@/services/auth.service";
 import { toast } from "@/components/ui/Toast";
 import AuthBrandPanel from "@/components/auth/AuthBrandPanel";
 
-export default function LoginPage() {
+function ResetPasswordForm() {
   const router = useRouter();
-  const { login, user, loading } = useAuth();
-  const [email, setEmail] = useState("admin@ministryflow.church");
-  const [password, setPassword] = useState("password");
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") ?? "";
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!loading && user) router.replace("/");
-  }, [loading, user, router]);
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setSubmitting(true);
     setError("");
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (!token) {
+      setError("Reset token is missing. Please use the link from your email.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      await login(email, password);
-      toast.success("Welcome back to MinistryFlow");
-      router.push("/");
+      await authService.resetPassword(token, password);
+      toast.success("Password reset successfully — please sign in");
+      router.push("/login");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
+      const message = err instanceof Error ? err.message : "Unable to reset password";
       setError(message);
       toast.error(message);
     } finally {
@@ -53,24 +65,16 @@ export default function LoginPage() {
               </div>
               <span className="font-display text-lg font-bold">MinistryFlow</span>
             </div>
-            <h1 className="font-display text-3xl font-bold tracking-tight">Sign in</h1>
+            <h1 className="font-display text-3xl font-bold tracking-tight">Set new password</h1>
             <p className="mt-2 text-sm text-[var(--muted)]">
-              Access your church management workspace.
+              Choose a strong password to secure your account.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <Input
-              label="Email address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@church.org"
-              required
-            />
             <div className="relative">
               <Input
-                label="Password"
+                label="New password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -87,14 +91,14 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="flex justify-end">
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium text-[var(--primary)] transition hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <Input
+              label="Confirm password"
+              type={showPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
 
             {error ? (
               <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
@@ -103,7 +107,7 @@ export default function LoginPage() {
             ) : null}
 
             <Button type="submit" className="group w-full" size="lg" disabled={submitting}>
-              {submitting ? "Signing in…" : "Sign in"}
+              {submitting ? "Resetting…" : "Reset password"}
               {!submitting ? (
                 <ArrowRight size={17} className="ml-2 transition group-hover:translate-x-0.5" />
               ) : null}
@@ -112,17 +116,25 @@ export default function LoginPage() {
 
           <div className="mt-5 flex items-center gap-2 rounded-xl border border-white/5 bg-[var(--surface)] px-4 py-3 text-xs text-[var(--muted)]">
             <ShieldCheck size={16} className="text-[var(--primary)]" />
-            Demo mode: use any email and password to explore the dashboard.
+            Use at least 8 characters with a mix of letters and numbers.
           </div>
 
-          <p className="mt-6 text-center text-sm text-[var(--muted)]">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-semibold text-[var(--primary)] hover:underline">
-              Create one
-            </Link>
-          </p>
+          <Link
+            href="/login"
+            className="mt-6 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--muted)] transition hover:text-white"
+          >
+            <ArrowLeft size={16} /> Back to sign in
+          </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

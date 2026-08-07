@@ -91,7 +91,7 @@ export default function SettingsPage() {
       await authService.updateProfile(profile);
       toast.success("Profile updated");
     } catch {
-      toast.success("Profile saved");
+      toast.error("Unable to save profile");
     } finally {
       setSaving(false);
     }

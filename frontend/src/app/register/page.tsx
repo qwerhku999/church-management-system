@@ -44,7 +44,7 @@ export default function RegisterPage() {
         <div className="w-full max-w-md animate-fade-up">
           <div className="mb-8">
             <div className="mb-6 flex items-center gap-3 lg:hidden">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 text-lg font-bold text-white">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--primary)] text-lg font-bold text-white">
                 M
               </div>
               <span className="font-display text-lg font-bold">MinistryFlow</span>

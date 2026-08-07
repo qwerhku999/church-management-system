@@ -8,8 +8,8 @@ import EmptyState from "@/components/ui/EmptyState";
 import { financeService } from "@/services/finance.service";
 
 export default function FinancePage() {
-  const [summary, setSummary] = useState<any>(null);
-  const [monthly, setMonthly] = useState<any[]>([]);
+  const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
+  const [monthly, setMonthly] = useState<Array<Record<string, unknown>>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -63,8 +63,8 @@ export default function FinancePage() {
                 <div className="space-y-3">
                   {monthly.map((item, index) => (
                     <div key={`${item.month ?? index}`} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3">
-                      <span>{item.month ?? `Month ${index + 1}`}</span>
-                      <span className="text-[var(--muted)]">{item.amount ?? 0}</span>
+                      <span>{String(item.month ?? `Month ${index + 1}`)}</span>
+                      <span className="text-[var(--muted)]">{String(item.amount ?? 0)}</span>
                     </div>
                   ))}
                 </div>

@@ -46,6 +46,15 @@ export const authService = {
     }
   },
 
+  async resetPassword(token: string, password: string) {
+    try {
+      const response = await apiPost<{ data: { message?: string } }>("/auth/reset-password", { token, password });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  },
+
   async updateProfile(payload: Record<string, unknown>) {
     try {
       const response = await apiPut<{ data: AuthResponse }>("/auth/me", payload);

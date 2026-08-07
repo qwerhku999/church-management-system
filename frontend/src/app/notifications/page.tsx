@@ -32,7 +32,7 @@ export default function NotificationsPage() {
       const response = await notificationService.list();
 
       const items =
-        (response?.data as any)?.notifications ??
+        (response?.data as Record<string, unknown>)?.notifications ??
         response?.data ??
         [];
 

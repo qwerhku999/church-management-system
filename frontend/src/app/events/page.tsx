@@ -27,7 +27,7 @@ export default function EventsPage() {
     try {
       const response = await eventService.list();
       const listData =
-        (response?.data as any)?.events ??
+        (response?.data as Record<string, unknown>)?.events ??
         response?.data ??
         [];
       setEvents(Array.isArray(listData) ? listData : []);

@@ -35,7 +35,7 @@ export default function MembersPage() {
       setLoading(true);
       const response = await memberService.list();
       const items =
-        (response?.data as any)?.members ??
+        (response?.data as Record<string, unknown>)?.members ??
         response?.data ??
         [];
       setMembers(Array.isArray(items) ? items : []);

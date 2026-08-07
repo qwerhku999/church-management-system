@@ -1,4 +1,4 @@
-import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { type LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -7,11 +7,11 @@ interface StatCardProps {
   subtitle?: string;
   icon: LucideIcon;
   trend?: number;
-  accent?: "indigo" | "emerald" | "amber" | "sky";
+  accent?: "primary" | "emerald" | "amber" | "sky";
 }
 
 const accents: Record<string, string> = {
-  indigo: "bg-[var(--primary-soft)] text-[var(--primary)]",
+  primary: "bg-[var(--primary-soft)] text-[var(--primary)]",
   emerald: "bg-emerald-500/12 text-emerald-400",
   amber: "bg-amber-500/12 text-amber-400",
   sky: "bg-sky-500/12 text-sky-400",
@@ -23,7 +23,7 @@ export default function StatCard({
   subtitle,
   icon: Icon,
   trend,
-  accent = "indigo",
+  accent = "primary",
 }: StatCardProps) {
   const positive = (trend ?? 0) >= 0;
 

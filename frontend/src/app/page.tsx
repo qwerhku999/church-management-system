@@ -22,7 +22,7 @@ export default function HomePage() {
 
       {/* Stats */}
       <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Members" value="1,284" subtitle="+18 this month" icon={Users} trend={4} accent="indigo" />
+        <StatCard title="Members" value="1,284" subtitle="+18 this month" icon={Users} trend={4} accent="primary" />
         <StatCard title="Donations" value="GHS 32,450" subtitle="This month" icon={Wallet} trend={12} accent="emerald" />
         <StatCard title="Events" value="12" subtitle="This week" icon={CalendarDays} accent="sky" />
         <StatCard title="Ministries" value="15" subtitle="Active" icon={Church} accent="amber" />

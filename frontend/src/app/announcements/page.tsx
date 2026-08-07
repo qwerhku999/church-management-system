@@ -1,53 +1,71 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Plus, Megaphone, Trash2, Pencil, Pin } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
+import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Input from "@/components/ui/Input";
 import Loader from "@/components/ui/Loader";
 import EmptyState from "@/components/ui/EmptyState";
-import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
-import { attendanceService } from "@/services/attendance.service";
+import Modal from "@/components/ui/Modal";
+import Badge from "@/components/ui/Badge";
+import { announcementService } from "@/services/announcement.service";
+import { formatDate, timeAgo } from "@/utils/helpers";
+import { toast } from "@/components/ui/Toast";
 
-interface AttendanceRecord {
+interface AnnouncementRecord {
   _id?: string;
-  date?: string;
-  serviceType?: string;
-  totalCount?: number;
-  memberCount?: number;
-  visitorCount?: number;
+  title?: string;
+  content?: string;
+  summary?: string;
+  category?: string;
+  priority?: string;
+  status?: string;
+  isPinned?: boolean;
+  publishDate?: string;
+  createdAt?: string;
 }
 
-export default function AttendancePage() {
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [stats, setStats] = useState<any>(null);
+const PRIORITY_TONES: Record<string, "default" | "warning" | "danger" | "muted"> = {
+  low: "muted",
+  normal: "default",
+  high: "warning",
+  urgent: "danger",
+};
+
+const STATUS_TONES: Record<string, "success" | "muted" | "info"> = {
+  published: "success",
+  draft: "muted",
+  archived: "muted",
+  scheduled: "info",
+};
+
+export default function AnnouncementsPage() {
+  const [announcements, setAnnouncements] = useState<AnnouncementRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editing, setEditing] = useState<AnnouncementRecord | null>(null);
   const [form, setForm] = useState({
-    serviceType: "sunday_service",
-    totalCount: "0",
+    title: "",
+    content: "",
+    category: "general",
+    priority: "normal",
+    status: "published",
   });
   const [error, setError] = useState("");
 
-  const loadData = async () => {
+  const loadAnnouncements = async () => {
     try {
-      const [listRes, statsRes] = await Promise.all([
-        attendanceService.list(),
-        attendanceService.getStats(),
-      ]);
-
-      const listData =
-        (listRes?.data as any)?.attendance ??
-        listRes?.data ??
+      setLoading(true);
+      const response = await announcementService.list();
+      const items =
+        (response?.data as Record<string, unknown>)?.announcements ??
+        response?.data ??
         [];
-
-      setRecords(Array.isArray(listData) ? listData : []);
-      setStats(statsRes?.data ?? statsRes);
+      setAnnouncements(Array.isArray(items) ? (items as AnnouncementRecord[]) : []);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load attendance"
-      );
+      setError(err instanceof Error ? err.message : "Unable to load announcements");
     } finally {
       setLoading(false);
     }
@@ -55,182 +73,204 @@ export default function AttendancePage() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void loadData();
+      void loadAnnouncements();
     }, 0);
-
     return () => window.clearTimeout(timer);
   }, []);
 
+  const resetForm = () => {
+    setForm({ title: "", content: "", category: "general", priority: "normal", status: "published" });
+    setEditing(null);
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (announcement: AnnouncementRecord) => {
+    setEditing(announcement);
+    setForm({
+      title: announcement.title ?? "",
+      content: announcement.content ?? "",
+      category: announcement.category ?? "general",
+      priority: announcement.priority ?? "normal",
+      status: announcement.status ?? "published",
+    });
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
     try {
-      await attendanceService.create({
-        ...form,
-        totalCount: Number(form.totalCount),
-      });
-
-      await loadData();
-
-      setForm({
-        serviceType: "sunday_service",
-        totalCount: "0",
-      });
+      if (editing?._id) {
+        await announcementService.update(editing._id, form);
+        toast.success("Announcement updated");
+      } else {
+        await announcementService.create(form);
+        toast.success("Announcement created");
+      }
+      setIsModalOpen(false);
+      resetForm();
+      await loadAnnouncements();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to save record"
-      );
+      const message = err instanceof Error ? err.message : "Save failed";
+      setError(message);
+      toast.error(message);
+    }
+  };
+
+  const handleDelete = async (id?: string) => {
+    if (!id) return;
+    if (!window.confirm("Delete this announcement?")) return;
+    try {
+      await announcementService.remove(id);
+      toast.success("Announcement deleted");
+      await loadAnnouncements();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Delete failed";
+      setError(message);
+      toast.error(message);
     }
   };
 
   return (
     <AppLayout>
       <div className="space-y-6">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">
-            Attendance
-          </p>
-
-          <h1 className="mt-2 text-3xl font-semibold">
-            Track church attendance
-          </h1>
-
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            Record attendance with quick summaries and service insights.
-          </p>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[var(--primary)]">Announcements</p>
+            <h1 className="mt-2 text-3xl font-semibold">Church announcements</h1>
+            <p className="mt-2 text-sm text-[var(--muted)]">Share updates, news, and important notices with your community.</p>
+          </div>
+          <Button onClick={openCreate} className="w-fit">
+            <Plus size={16} className="mr-2" /> New announcement
+          </Button>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-3">
-          <Card title="Today" description="Service attendance overview">
-            <div className="text-4xl font-semibold">
-              {stats?.attendance?.present ?? 0}
-            </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Present members
-            </p>
-          </Card>
+        {error ? <p className="text-sm text-red-400">{error}</p> : null}
 
-          <Card title="Absent" description="Pending follow-up">
-            <div className="text-4xl font-semibold">
-              {stats?.attendance?.absent ?? 0}
-            </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Absences logged
-            </p>
-          </Card>
-
-          <Card title="Late" description="Attendance status breakdown">
-            <div className="text-4xl font-semibold">
-              {stats?.attendance?.late ?? 0}
-            </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Late arrivals
-            </p>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <Card
-            title="Attendance records"
-            description="Recent attendance captures"
-          >
-            {error ? (
-              <p className="mb-4 text-sm text-red-400">
-                {error}
-              </p>
-            ) : null}
-
-            {loading ? (
-              <Loader label="Loading attendance" />
-            ) : records.length === 0 ? (
-              <EmptyState
-                title="No attendance records yet"
-                description="Capture the latest service attendance to get started."
-              />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="text-[var(--muted)]">
-                    <tr className="border-b border-[var(--border)]">
-                      <th className="px-3 py-3">Date</th>
-                      <th className="px-3 py-3">Service</th>
-                      <th className="px-3 py-3">Members</th>
-                      <th className="px-3 py-3">Visitors</th>
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {records.map((record) => (
-                      <tr
-                        key={record._id}
-                        className="border-b border-[var(--border)]/70"
+        <Card>
+          {loading ? (
+            <Loader label="Loading announcements" />
+          ) : announcements.length === 0 ? (
+            <EmptyState
+              title="No announcements yet"
+              description="Create an announcement to share news with your church."
+              action={<Button onClick={openCreate}>Create announcement</Button>}
+            />
+          ) : (
+            <div className="space-y-3">
+              {announcements.map((announcement) => (
+                <div
+                  key={announcement._id}
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-2)] p-5 transition-colors hover:border-[var(--border-strong)]"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {announcement.isPinned ? (
+                          <Pin size={14} className="text-[var(--primary)]" />
+                        ) : null}
+                        <h3 className="font-semibold text-[var(--text)]">{announcement.title || "Untitled announcement"}</h3>
+                        <Badge tone={PRIORITY_TONES[announcement.priority ?? "normal"] ?? "default"}>
+                          {announcement.priority ?? "normal"}
+                        </Badge>
+                        <Badge tone={STATUS_TONES[announcement.status ?? "published"] ?? "muted"}>
+                          {announcement.status ?? "published"}
+                        </Badge>
+                      </div>
+                      <p className="mt-2 text-sm text-[var(--muted)] line-clamp-2">
+                        {announcement.content || announcement.summary || "No content provided."}
+                      </p>
+                      <p className="mt-3 text-xs text-[var(--muted)]">
+                        {announcement.publishDate
+                          ? `Published ${formatDate(announcement.publishDate)}`
+                          : announcement.createdAt
+                            ? `${timeAgo(announcement.createdAt)}`
+                            : ""}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        onClick={() => openEdit(announcement)}
+                        className="rounded-lg p-2 text-[var(--muted)] transition hover:bg-[var(--surface-hover)] hover:text-white"
+                        aria-label="Edit announcement"
                       >
-                        <td className="px-3 py-3">
-                          {record.date
-                            ? new Date(
-                                record.date
-                              ).toLocaleDateString()
-                            : "—"}
-                        </td>
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(announcement._id)}
+                        className="rounded-lg p-2 text-red-400 transition hover:bg-red-500/10"
+                        aria-label="Delete announcement"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
 
-                        <td className="px-3 py-3">
-                          {record.serviceType || "—"}
-                        </td>
-
-                        <td className="px-3 py-3">
-                          {record.memberCount ?? 0}
-                        </td>
-
-                        <td className="px-3 py-3">
-                          {record.visitorCount ?? 0}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </Card>
-
-          <Card
-            title="Mark attendance"
-            description="Record a new service attendance"
-          >
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-4"
-            >
-              <Input
-                label="Service type"
-                value={form.serviceType}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    serviceType: e.target.value,
-                  })
-                }
+        <Modal
+          open={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            resetForm();
+          }}
+          title={editing ? "Edit announcement" : "New announcement"}
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              required
+            />
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[var(--text)]">Content</label>
+              <textarea
+                value={form.content}
+                onChange={(e) => setForm({ ...form, content: e.target.value })}
+                className="focus-ring min-h-32 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 py-3 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--primary)]"
+                placeholder="Write your announcement..."
+                required
               />
-
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
               <Input
-                label="Total count"
-                type="number"
-                value={form.totalCount}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    totalCount: e.target.value,
-                  })
-                }
+                label="Category"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
               />
-
-              <Button type="submit" className="w-full">
-                Save attendance
+              <Input
+                label="Priority"
+                value={form.priority}
+                onChange={(e) => setForm({ ...form, priority: e.target.value })}
+              />
+            </div>
+            <Input
+              label="Status"
+              value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value })}
+            />
+            <div className="flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  resetForm();
+                }}
+              >
+                Cancel
               </Button>
-            </form>
-          </Card>
-        </div>
+              <Button type="submit">{editing ? "Save changes" : "Publish"}</Button>
+            </div>
+          </form>
+        </Modal>
       </div>
     </AppLayout>
   );

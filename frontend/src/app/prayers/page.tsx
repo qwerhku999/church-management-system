@@ -26,7 +26,7 @@ export default function PrayersPage() {
     try {
       const response = await prayerService.list();
       const listData =
-        (response?.data as any)?.prayers ??
+        (response?.data as Record<string, unknown>)?.prayers ??
         response?.data ??
         [];
       setPrayers(Array.isArray(listData) ? listData : []);

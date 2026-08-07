@@ -1,4 +1,4 @@
-import { apiDelete, apiGet, apiPatch, apiPost, getApiErrorMessage } from "@/services/api";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut, getApiErrorMessage } from "@/services/api";
 
 export const visitorService = {
   async list() {
@@ -40,6 +40,15 @@ export const visitorService = {
   async remove(id: string) {
     try {
       const response = await apiDelete(`/visitors/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  },
+
+  async update(id: string, payload: Record<string, unknown>) {
+    try {
+      const response = await apiPut(`/visitors/${id}`, payload);
       return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));

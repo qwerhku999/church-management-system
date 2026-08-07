@@ -19,7 +19,7 @@ interface DonationRecord {
 
 export default function DonationsPage() {
   const [donations, setDonations] = useState<DonationRecord[]>([]);
-  const [summary, setSummary] = useState<any>(null);
+  const [summary, setSummary] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ donorName: "", amount: "", paymentMethod: "cash" });
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ export default function DonationsPage() {
     try {
       const [listRes, summaryRes] = await Promise.all([donationService.list(), donationService.getSummary()]);
       const listData =
-        (listRes?.data as any)?.donations ??
+        (listRes?.data as Record<string, unknown>)?.donations ??
         listRes?.data ??
         [];
       setDonations(Array.isArray(listData) ? listData : []);
