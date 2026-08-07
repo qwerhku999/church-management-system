@@ -42,13 +42,13 @@ export default function AttendanceChart() {
             >
               <stop
                 offset="5%"
-                stopColor="#6366F1"
-                stopOpacity={0.55}
+                stopColor="#7c74ff"
+                stopOpacity={0.35}
               />
 
               <stop
                 offset="100%"
-                stopColor="#6366F1"
+                stopColor="#7c74ff"
                 stopOpacity={0}
               />
             </linearGradient>
@@ -57,7 +57,7 @@ export default function AttendanceChart() {
           <XAxis
             dataKey="day"
             tick={{
-              fill: "#94A3B8",
+              fill: "#9a9aa6",
               fontSize: 12,
             }}
             axisLine={false}
@@ -66,7 +66,7 @@ export default function AttendanceChart() {
 
           <YAxis
             tick={{
-              fill: "#94A3B8",
+              fill: "#9a9aa6",
               fontSize: 12,
             }}
             axisLine={false}
@@ -75,31 +75,30 @@ export default function AttendanceChart() {
 
           <Tooltip
             cursor={{
-              stroke: "#6366F1",
-              strokeOpacity: 0.25,
+              stroke: "#7c74ff",
+              strokeOpacity: 0.3,
             }}
             contentStyle={{
-              background: "#101827",
-              border: "1px solid rgba(255,255,255,.06)",
-              borderRadius: "16px",
-              color: "#fff",
+              background: "#1b1b21",
+              border: "1px solid rgba(255,255,255,.09)",
+              borderRadius: "12px",
+              color: "#f4f4f5",
+              boxShadow: "0 8px 24px rgba(0,0,0,.24)",
             }}
           />
 
           <Area
             type="monotone"
             dataKey="attendance"
-            stroke="#6366F1"
-            strokeWidth={4}
+            stroke="#7c74ff"
+            strokeWidth={2.5}
             fill="url(#attendanceGradient)"
-            dot={{
-              r: 4,
-              fill: "#6366F1",
-              strokeWidth: 2,
-              stroke: "#fff",
-            }}
+            dot={false}
             activeDot={{
-              r: 7,
+              r: 5,
+              fill: "#7c74ff",
+              strokeWidth: 2,
+              stroke: "#0b0b0e",
             }}
           />
         </AreaChart>

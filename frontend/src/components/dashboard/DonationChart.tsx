@@ -34,40 +34,57 @@ export default function DonationChart() {
             >
               <stop
                 offset="5%"
-                stopColor="#22C55E"
-                stopOpacity={0.5}
+                stopColor="#34d399"
+                stopOpacity={0.35}
               />
 
               <stop
                 offset="95%"
-                stopColor="#22C55E"
+                stopColor="#34d399"
                 stopOpacity={0}
               />
             </linearGradient>
           </defs>
 
           <CartesianGrid
-            stroke="#1e293b"
+            stroke="rgba(255,255,255,0.06)"
             strokeDasharray="3 3"
+            vertical={false}
           />
 
           <XAxis
             dataKey="month"
-            stroke="#94A3B8"
+            stroke="#9a9aa6"
+            fontSize={12}
+            axisLine={false}
+            tickLine={false}
           />
 
           <YAxis
-            stroke="#94A3B8"
+            stroke="#9a9aa6"
+            fontSize={12}
+            axisLine={false}
+            tickLine={false}
+            width={36}
           />
 
-          <Tooltip />
+          <Tooltip
+            cursor={{ stroke: "#34d399", strokeOpacity: 0.3 }}
+            contentStyle={{
+              background: "#1b1b21",
+              border: "1px solid rgba(255,255,255,.09)",
+              borderRadius: "12px",
+              color: "#f4f4f5",
+              boxShadow: "0 8px 24px rgba(0,0,0,.24)",
+            }}
+          />
 
           <Area
             type="monotone"
             dataKey="donations"
-            stroke="#22C55E"
+            stroke="#34d399"
             fill="url(#donations)"
-            strokeWidth={3}
+            strokeWidth={2.5}
           />
         </AreaChart>
       </ResponsiveContainer>

@@ -13,37 +13,42 @@
 }
 
 :root {
-  /* Brand */
-  --primary: #6366f1;
-  --primary-hover: #4f46e5;
+  /* Brand — one restrained accent */
+  --primary: #7c74ff;
+  --primary-hover: #6a61f5;
+  --primary-soft: rgba(124, 116, 255, 0.12);
+  --primary-ring: rgba(124, 116, 255, 0.35);
 
-  /* Backgrounds */
-  --bg: #070b17;
-  --background: #070b17;
-  --surface: #0f172a;
-  --surface-2: #131d33;
-  --surface-hover: #1b2845;
+  /* Backgrounds — true neutral, near-black */
+  --bg: #0b0b0e;
+  --background: #0b0b0e;
+  --surface: #141418;
+  --surface-2: #1b1b21;
+  --surface-hover: #22222a;
 
   /* Text */
-  --text: #f8fafc;
-  --foreground: #f8fafc;
-  --muted: #94a3b8;
+  --text: #f4f4f5;
+  --foreground: #f4f4f5;
+  --muted: #9a9aa6;
+  --muted-strong: #c7c7d1;
 
   /* Borders */
-  --border: rgba(255, 255, 255, 0.07);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.16);
 
   /* Status */
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
 
-  /* Radius */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
+  /* Radius — tighter, more refined */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 
-  /* Shadow */
-  --shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
+  /* Shadow — subtle, no glow */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 *,
@@ -56,10 +61,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background:
-    radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 40%),
-    radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.08), transparent 35%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -87,8 +89,8 @@ a {
 }
 
 ::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -96,16 +98,17 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #24304f;
+  background: #2a2a33;
+  border: 2px solid var(--bg);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #32436e;
+  background: #3a3a45;
 }
 
 ::selection {
-  background: rgba(99, 102, 241, 0.35);
+  background: var(--primary-soft);
 }
 
 /* ------------------------------------------------------------------ */
@@ -113,29 +116,32 @@ a {
 /* ------------------------------------------------------------------ */
 
 .card {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent), var(--surface);
-  box-shadow: var(--shadow);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .hover-card {
   transition:
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .hover-card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary-ring);
 }
 
 .glass {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: rgba(11, 11, 14, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 /* ------------------------------------------------------------------ */
@@ -145,7 +151,7 @@ a {
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -163,9 +169,9 @@ a {
 }
 
 .animate-fade-up {
-  animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-fade-in {
-  animation: fade-in 0.4s ease both;
+  animation: fade-in 0.3s ease both;
 }
