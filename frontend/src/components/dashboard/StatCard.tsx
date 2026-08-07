@@ -1,46 +1,58 @@
-import { ArrowUpRight, LucideIcon } from "lucide-react";
+import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   title: string;
-  value: string;
-  subtitle: string;
+  value: string | number;
+  subtitle?: string;
   icon: LucideIcon;
+  trend?: number;
+  accent?: "indigo" | "emerald" | "amber" | "sky";
 }
+
+const accents: Record<string, string> = {
+  indigo: "from-indigo-500/20 to-indigo-500/0 text-indigo-300",
+  emerald: "from-emerald-500/20 to-emerald-500/0 text-emerald-300",
+  amber: "from-amber-500/20 to-amber-500/0 text-amber-300",
+  sky: "from-sky-500/20 to-sky-500/0 text-sky-300",
+};
 
 export default function StatCard({
   title,
   value,
   subtitle,
   icon: Icon,
+  trend,
+  accent = "indigo",
 }: StatCardProps) {
+  const positive = (trend ?? 0) >= 0;
+
   return (
-    <div className="group rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[var(--primary)]/40 hover:shadow-2xl">
+    <div className="card hover-card p-5">
       <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-[var(--muted)]">
-            {title}
-          </p>
-
-          <h3 className="mt-4 text-4xl font-bold tracking-tight">
-            {value}
-          </h3>
+        <div
+          className={cn(
+            "flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br",
+            accents[accent]
+          )}
+        >
+          <Icon size={20} />
         </div>
-
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--primary)] to-blue-500 shadow-lg">
-          <Icon className="h-8 w-8 text-white" />
-        </div>
+        {typeof trend === "number" ? (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
+              positive ? "bg-emerald-500/12 text-emerald-300" : "bg-red-500/12 text-red-300"
+            )}
+          >
+            {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            {Math.abs(trend)}%
+          </span>
+        ) : null}
       </div>
-
-      <div className="mt-6 flex items-center gap-3">
-        <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-400">
-          <ArrowUpRight size={14} />
-          +12%
-        </span>
-
-        <span className="text-sm text-[var(--muted)]">
-          {subtitle}
-        </span>
-      </div>
+      <p className="mt-4 text-sm text-[var(--muted)]">{title}</p>
+      <p className="mt-1 font-display text-2xl font-bold tracking-tight">{value}</p>
+      {subtitle ? <p className="mt-1 text-xs text-[var(--muted)]">{subtitle}</p> : null}
     </div>
   );
 }
