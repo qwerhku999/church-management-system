@@ -1,4 +1,4 @@
-import { apiGet, apiPost, getApiErrorMessage } from "@/services/api";
+import { apiGet, apiPost, apiPut, getApiErrorMessage } from "@/services/api";
 
 interface AuthResponse {
   token?: string;
@@ -32,6 +32,33 @@ export const authService = {
     try {
       const response = await apiGet<{ data: AuthResponse }>("/auth/me");
       return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  },
+
+  async forgotPassword(email: string) {
+    try {
+      const response = await apiPost<{ data: { message?: string } }>("/auth/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  },
+
+  async updateProfile(payload: Record<string, unknown>) {
+    try {
+      const response = await apiPut<{ data: AuthResponse }>("/auth/me", payload);
+      return response.data.data;
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error));
+    }
+  },
+
+  async changePassword(payload: { currentPassword: string; newPassword: string }) {
+    try {
+      const response = await apiPost<{ data: { message?: string } }>("/auth/change-password", payload);
+      return response.data;
     } catch (error) {
       throw new Error(getApiErrorMessage(error));
     }
