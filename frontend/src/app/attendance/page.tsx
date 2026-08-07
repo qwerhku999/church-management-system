@@ -30,7 +30,8 @@ export default function AttendancePage() {
       const [listRes, statsRes] = await Promise.all([attendanceService.list(), attendanceService.getStats()]);
       const listData = (listRes?.data as Record<string, unknown>)?.attendance ?? listRes?.data ?? [];
       setRecords(Array.isArray(listData) ? listData : []);
-      setStats(statsRes?.data ?? statsRes);
+      const statsData = statsRes?.data ?? statsRes ?? null;
+      setStats(statsData as Record<string, unknown> | null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load attendance");
     } finally {
