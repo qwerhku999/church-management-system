@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-primary: var(--primary);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+}
+
 :root {
   /* Brand */
   --primary: #6366f1;
@@ -7,16 +19,18 @@
 
   /* Backgrounds */
   --bg: #070b17;
+  --background: #070b17;
   --surface: #0f172a;
   --surface-2: #131d33;
   --surface-hover: #1b2845;
 
   /* Text */
   --text: #f8fafc;
+  --foreground: #f8fafc;
   --muted: #94a3b8;
 
   /* Borders */
-  --border: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.07);
 
   /* Status */
   --success: #22c55e;
@@ -29,8 +43,7 @@
   --radius-lg: 22px;
 
   /* Shadow */
-  --shadow:
-    0 10px 35px rgba(0, 0, 0, 0.35);
+  --shadow: 0 10px 35px rgba(0, 0, 0, 0.35);
 }
 
 *,
@@ -44,21 +57,11 @@ body {
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at top right,
-      rgba(99, 102, 241, .10),
-      transparent 40%),
-    radial-gradient(circle at bottom left,
-      rgba(59, 130, 246, .08),
-      transparent 35%),
+    radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 40%),
+    radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.08), transparent 35%),
     var(--bg);
-
   color: var(--text);
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    sans-serif;
-
+  font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -85,6 +88,7 @@ a {
 
 ::-webkit-scrollbar {
   width: 9px;
+  height: 9px;
 }
 
 ::-webkit-scrollbar-track {
@@ -101,5 +105,67 @@ a {
 }
 
 ::selection {
-  background: rgba(99, 102, 241, .35);
+  background: rgba(99, 102, 241, 0.35);
+}
+
+/* ------------------------------------------------------------------ */
+/* Reusable component utility classes                                 */
+/* ------------------------------------------------------------------ */
+
+.card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent), var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.hover-card {
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+}
+
+.glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ------------------------------------------------------------------ */
+/* Animations                                                         */
+/* ------------------------------------------------------------------ */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
 }
