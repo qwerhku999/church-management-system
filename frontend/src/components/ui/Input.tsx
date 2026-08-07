@@ -13,13 +13,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         className={cn(
-          "h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--primary)]",
-          error && "border-red-500/60",
+          "focus-ring h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--primary)]",
+          error && "border-[var(--danger)]/60",
           className
         )}
         {...props}
       />
-      {error ? <p className="mt-2 text-sm text-red-400">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm text-[var(--danger)]">{error}</p> : null}
     </div>
   )
 );

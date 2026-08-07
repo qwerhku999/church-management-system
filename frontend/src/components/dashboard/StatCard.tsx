@@ -11,10 +11,10 @@ interface StatCardProps {
 }
 
 const accents: Record<string, string> = {
-  indigo: "from-indigo-500/20 to-indigo-500/0 text-indigo-300",
-  emerald: "from-emerald-500/20 to-emerald-500/0 text-emerald-300",
-  amber: "from-amber-500/20 to-amber-500/0 text-amber-300",
-  sky: "from-sky-500/20 to-sky-500/0 text-sky-300",
+  indigo: "bg-[var(--primary-soft)] text-[var(--primary)]",
+  emerald: "bg-emerald-500/12 text-emerald-400",
+  amber: "bg-amber-500/12 text-amber-400",
+  sky: "bg-sky-500/12 text-sky-400",
 };
 
 export default function StatCard({
@@ -30,19 +30,14 @@ export default function StatCard({
   return (
     <div className="card hover-card p-5">
       <div className="flex items-start justify-between">
-        <div
-          className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br",
-            accents[accent]
-          )}
-        >
-          <Icon size={20} />
+        <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", accents[accent])}>
+          <Icon size={19} />
         </div>
         {typeof trend === "number" ? (
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
-              positive ? "bg-emerald-500/12 text-emerald-300" : "bg-red-500/12 text-red-300"
+              "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold",
+              positive ? "bg-emerald-500/12 text-emerald-400" : "bg-[var(--danger)]/12 text-[var(--danger)]"
             )}
           >
             {positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -51,7 +46,7 @@ export default function StatCard({
         ) : null}
       </div>
       <p className="mt-4 text-sm text-[var(--muted)]">{title}</p>
-      <p className="mt-1 font-display text-2xl font-bold tracking-tight">{value}</p>
+      <p className="mt-1 font-display text-[26px] font-bold leading-tight tracking-tight text-[var(--text)]">{value}</p>
       {subtitle ? <p className="mt-1 text-xs text-[var(--muted)]">{subtitle}</p> : null}
     </div>
   );
