@@ -25,7 +25,10 @@ export default function PrayersPage() {
   const loadPrayers = async () => {
     try {
       const response = await prayerService.list();
-      const listData = response?.data?.prayers ?? response?.data ?? [];
+      const listData =
+        (response?.data as any)?.prayers ??
+        response?.data ??
+        [];
       setPrayers(Array.isArray(listData) ? listData : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load prayer requests");

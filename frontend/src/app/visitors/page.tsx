@@ -25,7 +25,10 @@ export default function VisitorsPage() {
   const loadVisitors = async () => {
     try {
       const response = await visitorService.list();
-      const listData = response?.data?.visitors ?? response?.data ?? [];
+      const listData =
+        (response?.data as any)?.visitors ??
+        response?.data ??
+        [];
       setVisitors(Array.isArray(listData) ? listData : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load visitors");

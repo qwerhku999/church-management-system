@@ -31,7 +31,7 @@ export default function DocumentsPage() {
       const response = await documentService.list();
 
       const items =
-        response?.data?.documents ??
+        (response?.data as any)?.documents ??
         response?.data ??
         [];
 

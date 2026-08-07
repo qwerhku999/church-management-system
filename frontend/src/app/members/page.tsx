@@ -34,7 +34,10 @@ export default function MembersPage() {
     try {
       setLoading(true);
       const response = await memberService.list();
-      const items = response?.data?.members ?? response?.data ?? [];
+      const items =
+        (response?.data as any)?.members ??
+        response?.data ??
+        [];
       setMembers(Array.isArray(items) ? items : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load members");

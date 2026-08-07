@@ -28,7 +28,7 @@ export default function AttendancePage() {
   const loadData = async () => {
     try {
       const [listRes, statsRes] = await Promise.all([attendanceService.list(), attendanceService.getStats()]);
-      const listData = listRes?.data?.attendance ?? listRes?.data ?? [];
+      const listData = (listRes?.data as any)?.attendance ?? listRes?.data ?? [];
       setRecords(Array.isArray(listData) ? listData : []);
       setStats(statsRes?.data ?? statsRes);
     } catch (err) {

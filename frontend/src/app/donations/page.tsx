@@ -27,7 +27,10 @@ export default function DonationsPage() {
   const loadData = async () => {
     try {
       const [listRes, summaryRes] = await Promise.all([donationService.list(), donationService.getSummary()]);
-      const listData = listRes?.data?.donations ?? listRes?.data ?? [];
+      const listData =
+        (listRes?.data as any)?.donations ??
+        listRes?.data ??
+        [];
       setDonations(Array.isArray(listData) ? listData : []);
       setSummary(summaryRes?.data ?? summaryRes);
     } catch (err) {

@@ -26,7 +26,10 @@ export default function EventsPage() {
   const loadEvents = async () => {
     try {
       const response = await eventService.list();
-      const listData = response?.data?.events ?? response?.data ?? [];
+      const listData =
+        (response?.data as any)?.events ??
+        response?.data ??
+        [];
       setEvents(Array.isArray(listData) ? listData : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load events");
