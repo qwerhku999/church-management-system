@@ -10,3 +10,5 @@ logs/
 *.log
 backend/uploads/
 frontend/.next/
+
+*.zip
