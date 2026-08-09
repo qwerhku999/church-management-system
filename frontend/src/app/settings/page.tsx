@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { User, Church, Bell, Lock, Save } from "lucide-react";
+import {
+  User,
+  Church,
+  Bell,
+  Lock,
+  Save,
+  Shield,
+} from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -9,18 +16,48 @@ import Input from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
 import { authService } from "@/services/auth.service";
 import { toast } from "@/components/ui/Toast";
+import UserManagement from "@/components/settings/UserManagement";
 import { getDisplayName } from "@/utils/helpers";
 import { cn } from "@/lib/utils";
 
-type TabKey = "profile" | "church" | "notifications" | "security";
+type TabKey =
+  | "profile"
+  | "church"
+  | "notifications"
+  | "security"
+  | "users";
 
-const TABS: { key: TabKey; label: string; icon: typeof User }[] = [
-  { key: "profile", label: "Profile", icon: User },
-  { key: "church", label: "Church", icon: Church },
-  { key: "notifications", label: "Notifications", icon: Bell },
-  { key: "security", label: "Security", icon: Lock },
-];
-
+const TABS: {
+  key: TabKey;
+  label: string;
+  icon: typeof User;
+}[] = [
+    {
+      key: "profile",
+      label: "Profile",
+      icon: User,
+    },
+    {
+      key: "church",
+      label: "Church",
+      icon: Church,
+    },
+    {
+      key: "notifications",
+      label: "Notifications",
+      icon: Bell,
+    },
+    {
+      key: "security",
+      label: "Security",
+      icon: Lock,
+    },
+    {
+      key: "users",
+      label: "User Management",
+      icon: Shield,
+    },
+  ];
 interface ToggleProps {
   label: string;
   description: string;
@@ -125,7 +162,11 @@ export default function SettingsPage() {
         <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
           {/* Tabs */}
           <nav className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
-            {TABS.map(({ key, label, icon: Icon }) => (
+            {TABS.filter(
+              ({ key }) =>
+                key !== "users" ||
+                user?.role === "super_admin"
+            ).map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
@@ -273,6 +314,9 @@ export default function SettingsPage() {
                   </div>
                 </form>
               </Card>
+            ) : null}
+            {tab === "users" && user?.role === "super_admin" ? (
+              <UserManagement />
             ) : null}
           </div>
         </div>

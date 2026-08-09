@@ -6,14 +6,55 @@ const userController = require("../controllers/userController");
 const { protect, authorize } = require("../middleware/auth");
 
 router.use(protect);
-router.use(authorize("super_admin", "admin"));
 
-router.get("/", userController.getUsers);
-router.post("/", userController.createUser);
-router.get("/:id", userController.getUser);
-router.put("/:id", userController.updateUser);
-router.delete("/:id", userController.deleteUser);
-router.patch("/:id/status", userController.toggleUserStatus);
-router.patch("/:id/role", userController.updateUserRole);
+/*
+ * User management is available to both
+ * Super Admin and Admin.
+ */
+router.get(
+    "/",
+    authorize("super_admin", "admin"),
+    userController.getUsers
+);
+
+router.post(
+    "/",
+    authorize("super_admin", "admin"),
+    userController.createUser
+);
+
+router.get(
+    "/:id",
+    authorize("super_admin", "admin"),
+    userController.getUser
+);
+
+router.put(
+    "/:id",
+    authorize("super_admin", "admin"),
+    userController.updateUser
+);
+
+router.delete(
+    "/:id",
+    authorize("super_admin", "admin"),
+    userController.deleteUser
+);
+
+router.patch(
+    "/:id/status",
+    authorize("super_admin", "admin"),
+    userController.toggleUserStatus
+);
+
+/*
+ * IMPORTANT:
+ * Only Super Admin can promote/demote users.
+ */
+router.patch(
+    "/:id/role",
+    authorize("super_admin"),
+    userController.updateUserRole
+);
 
 module.exports = router;

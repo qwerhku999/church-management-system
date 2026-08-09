@@ -27,7 +27,7 @@ export type Role =
   | "volunteer"
   | "member";
 
-export const ROLES = {
+export const ROLES: Record<string, Role> = {
   SUPER_ADMIN: "super_admin",
   ADMIN: "admin",
   PASTOR: "pastor",
@@ -37,7 +37,7 @@ export const ROLES = {
   MINISTRY_LEADER: "ministry_leader",
   VOLUNTEER: "volunteer",
   MEMBER: "member",
-} as const;
+};
 
 export const ROLE_LABELS: Record<Role, string> = {
   super_admin: "Super Administrator",
@@ -56,47 +56,15 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   roles: Role[];
-  group: "Overview" | "People" | "Operations" | "Communication" | "System";
+  group:
+  | "Overview"
+  | "People"
+  | "Operations"
+  | "Communication"
+  | "System";
 }
 
-const ADMIN_ROLES: Role[] = [
-  "super_admin",
-  "admin",
-];
-
-const LEADERSHIP_ROLES: Role[] = [
-  "super_admin",
-  "admin",
-  "pastor",
-];
-
-const PEOPLE_ROLES: Role[] = [
-  "super_admin",
-  "admin",
-  "pastor",
-  "secretary",
-  "ministry_leader",
-];
-
-const FINANCE_ROLES: Role[] = [
-  "super_admin",
-  "admin",
-  "pastor",
-  "treasurer",
-  "finance_officer",
-];
-
-const STAFF_ROLES: Role[] = [
-  "super_admin",
-  "admin",
-  "pastor",
-  "secretary",
-  "treasurer",
-  "finance_officer",
-  "ministry_leader",
-];
-
-const ALL_ROLES: Role[] = [
+const ALL: Role[] = [
   "super_admin",
   "admin",
   "pastor",
@@ -113,7 +81,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Dashboard",
     href: "/",
     icon: LayoutDashboard,
-    roles: ALL_ROLES,
+    roles: ALL,
     group: "Overview",
   },
 
@@ -121,7 +89,13 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Members",
     href: "/members",
     icon: Users,
-    roles: PEOPLE_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "secretary",
+      "ministry_leader",
+    ],
     group: "People",
   },
 
@@ -129,7 +103,14 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Attendance",
     href: "/attendance",
     icon: UserCheck,
-    roles: PEOPLE_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "secretary",
+      "ministry_leader",
+      "volunteer",
+    ],
     group: "People",
   },
 
@@ -137,7 +118,14 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Visitors",
     href: "/visitors",
     icon: UserPlus,
-    roles: PEOPLE_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "secretary",
+      "ministry_leader",
+      "volunteer",
+    ],
     group: "People",
   },
 
@@ -145,7 +133,15 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Events",
     href: "/events",
     icon: CalendarDays,
-    roles: ALL_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "secretary",
+      "ministry_leader",
+      "volunteer",
+      "member",
+    ],
     group: "Operations",
   },
 
@@ -153,7 +149,14 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Ministries",
     href: "/ministries",
     icon: Building2,
-    roles: ALL_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "ministry_leader",
+      "volunteer",
+      "member",
+    ],
     group: "Operations",
   },
 
@@ -161,7 +164,13 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Donations",
     href: "/donations",
     icon: HandCoins,
-    roles: FINANCE_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "treasurer",
+      "finance_officer",
+    ],
     group: "Operations",
   },
 
@@ -169,7 +178,13 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Finance",
     href: "/finance",
     icon: Wallet,
-    roles: FINANCE_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "treasurer",
+      "finance_officer",
+    ],
     group: "Operations",
   },
 
@@ -177,7 +192,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Prayer Requests",
     href: "/prayers",
     icon: HeartHandshake,
-    roles: ALL_ROLES,
+    roles: ALL,
     group: "Communication",
   },
 
@@ -185,7 +200,13 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Announcements",
     href: "/announcements",
     icon: Megaphone,
-    roles: STAFF_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "secretary",
+      "ministry_leader",
+    ],
     group: "Communication",
   },
 
@@ -193,7 +214,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Notifications",
     href: "/notifications",
     icon: Bell,
-    roles: ALL_ROLES,
+    roles: ALL,
     group: "Communication",
   },
 
@@ -201,7 +222,15 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Documents",
     href: "/documents",
     icon: FileText,
-    roles: STAFF_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "secretary",
+      "treasurer",
+      "finance_officer",
+      "ministry_leader",
+    ],
     group: "System",
   },
 
@@ -209,7 +238,13 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Reports",
     href: "/reports",
     icon: BarChart3,
-    roles: LEADERSHIP_ROLES,
+    roles: [
+      "super_admin",
+      "admin",
+      "pastor",
+      "treasurer",
+      "finance_officer",
+    ],
     group: "System",
   },
 
@@ -217,7 +252,7 @@ export const NAV_ITEMS: NavItem[] = [
     title: "Settings",
     href: "/settings",
     icon: Settings,
-    roles: ADMIN_ROLES,
+    roles: ["super_admin", "admin"],
     group: "System",
   },
 ];
@@ -231,11 +266,7 @@ export const NAV_GROUPS: Array<NavItem["group"]> = [
 ];
 
 export function filterNavByRole(role: string | undefined): NavItem[] {
-  const r = role as Role | undefined;
-
-  if (!r) {
-    return [];
-  }
+  const r = role as Role;
 
   return NAV_ITEMS.filter((item) => item.roles.includes(r));
 }
