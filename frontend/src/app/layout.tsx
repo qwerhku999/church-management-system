@@ -41,7 +41,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${sora.variable} bg-background`}>
-      <body className="bg-background font-sans text-[var(--text)] antialiased">
+      <body
+        suppressHydrationWarning={true}
+        className="bg-background font-sans text-[var(--text)] antialiased">
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>
         </AuthProvider>
