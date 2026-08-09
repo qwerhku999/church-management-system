@@ -354,6 +354,7 @@ export default function SettingsPage() {
                         email: e.target.value,
                       })
                     }
+                    disabled
                   />
 
                   <div className="flex justify-end">
