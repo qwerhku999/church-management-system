@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -8,18 +9,55 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import api from "@/lib/axios";
 
-const data = [
-  { day: "Mon", attendance: 210 },
-  { day: "Tue", attendance: 180 },
-  { day: "Wed", attendance: 250 },
-  { day: "Thu", attendance: 300 },
-  { day: "Fri", attendance: 220 },
-  { day: "Sat", attendance: 470 },
-  { day: "Sun", attendance: 980 },
-];
+type AttendanceData = {
+  day: string;
+  attendance: number;
+};
 
 export default function AttendanceChart() {
+  const [data, setData] = useState<AttendanceData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAttendance = async () => {
+    try {
+      const response = await api.get("/attendance/stats");
+
+      const weeklyAttendance =
+        response.data?.data?.weeklyAttendance ?? [];
+
+      setData(weeklyAttendance);
+    } catch (error) {
+      console.error(
+        "Failed to fetch attendance statistics:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAttendance();
+
+    // Refresh every 30 seconds
+    const interval = setInterval(
+      fetchAttendance,
+      30000
+    );
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[340px] items-center justify-center text-sm text-[var(--muted)]">
+        Loading attendance...
+      </div>
+    );
+  }
+
   return (
     <div className="h-[340px]">
       <ResponsiveContainer width="100%" height="100%">

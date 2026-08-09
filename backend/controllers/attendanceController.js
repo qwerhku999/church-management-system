@@ -32,20 +32,20 @@ const createAttendance = async (req, res, next) => {
 
 
 
-    if(event){
+    if (event) {
 
       const existingEvent =
         await Event.findById(event);
 
 
 
-      if(!existingEvent){
+      if (!existingEvent) {
 
         return res.status(404).json({
 
-          success:false,
+          success: false,
 
-          message:"Event not found."
+          message: "Event not found."
 
         });
 
@@ -55,13 +55,13 @@ const createAttendance = async (req, res, next) => {
 
 
 
-    if(!records || !Array.isArray(records) || records.length === 0){
+    if (!records || !Array.isArray(records) || records.length === 0) {
 
       return res.status(400).json({
 
-        success:false,
+        success: false,
 
-        message:"Attendance records are required."
+        message: "Attendance records are required."
 
       });
 
@@ -83,21 +83,21 @@ const createAttendance = async (req, res, next) => {
     const members =
       await Member.find({
 
-        _id:{
-          $in:memberIds
+        _id: {
+          $in: memberIds
         }
 
       });
 
 
 
-    if(members.length !== memberIds.length){
+    if (members.length !== memberIds.length) {
 
       return res.status(404).json({
 
-        success:false,
+        success: false,
 
-        message:"One or more members were not found."
+        message: "One or more members were not found."
 
       });
 
@@ -144,7 +144,7 @@ const createAttendance = async (req, res, next) => {
 
         date: date || Date.now(),
 
-        recordedBy:req.user._id
+        recordedBy: req.user._id
 
       });
 
@@ -167,7 +167,7 @@ const createAttendance = async (req, res, next) => {
 
 
 
-  } catch(error){
+  } catch (error) {
 
     next(error);
 
@@ -179,9 +179,9 @@ const createAttendance = async (req, res, next) => {
 // GET ALL ATTENDANCE
 // =====================================
 
-const getAttendance = async(req,res,next)=>{
+const getAttendance = async (req, res, next) => {
 
-  try{
+  try {
 
 
     const {
@@ -196,7 +196,7 @@ const getAttendance = async(req,res,next)=>{
 
 
 
-    if(req.query.event){
+    if (req.query.event) {
 
       filter.event = req.query.event;
 
@@ -204,7 +204,7 @@ const getAttendance = async(req,res,next)=>{
 
 
 
-    if(req.query.serviceType){
+    if (req.query.serviceType) {
 
       filter.serviceType = req.query.serviceType;
 
@@ -212,7 +212,7 @@ const getAttendance = async(req,res,next)=>{
 
 
 
-    if(req.query.date){
+    if (req.query.date) {
 
       const date = new Date(req.query.date);
 
@@ -221,16 +221,16 @@ const getAttendance = async(req,res,next)=>{
 
 
       nextDay.setDate(
-        date.getDate()+1
+        date.getDate() + 1
       );
 
 
 
       filter.date = {
 
-        $gte:date,
+        $gte: date,
 
-        $lt:nextDay
+        $lt: nextDay
 
       };
 
@@ -248,35 +248,35 @@ const getAttendance = async(req,res,next)=>{
 
       Attendance.find(filter)
 
-      .populate(
-        "records.person",
-        "firstName lastName phone"
-      )
+        .populate(
+          "records.person",
+          "firstName lastName phone"
+        )
 
 
-      .populate(
-        "event",
-        "title startDate"
-      )
+        .populate(
+          "event",
+          "title startDate"
+        )
 
 
-      .populate(
-        "recordedBy",
-        "firstName lastName"
-      )
+        .populate(
+          "recordedBy",
+          "firstName lastName"
+        )
 
 
-      .sort({
+        .sort({
 
-        date:-1
+          date: -1
 
-      })
-
-
-      .skip(skip)
+        })
 
 
-      .limit(limit),
+        .skip(skip)
+
+
+        .limit(limit),
 
 
 
@@ -307,7 +307,7 @@ const getAttendance = async(req,res,next)=>{
 
         limit,
 
-        pages:Math.ceil(total/limit)
+        pages: Math.ceil(total / limit)
 
       }
 
@@ -315,7 +315,7 @@ const getAttendance = async(req,res,next)=>{
 
 
 
-  }catch(error){
+  } catch (error) {
 
     next(error);
 
@@ -332,9 +332,9 @@ const getAttendance = async(req,res,next)=>{
 // GET SINGLE ATTENDANCE
 // =====================================
 
-const getAttendanceById = async(req,res,next)=>{
+const getAttendanceById = async (req, res, next) => {
 
-  try{
+  try {
 
 
     const attendance =
@@ -343,45 +343,45 @@ const getAttendanceById = async(req,res,next)=>{
 
 
 
-      .populate(
+        .populate(
 
-        "records.person",
+          "records.person",
 
-        "firstName lastName phone"
+          "firstName lastName phone"
 
-      )
-
-
-
-      .populate(
-
-        "event",
-
-        "title startDate"
-
-      )
+        )
 
 
 
-      .populate(
+        .populate(
 
-        "recordedBy",
+          "event",
 
-        "firstName lastName"
+          "title startDate"
 
-      );
-
-
+        )
 
 
 
-    if(!attendance){
+        .populate(
+
+          "recordedBy",
+
+          "firstName lastName"
+
+        );
+
+
+
+
+
+    if (!attendance) {
 
       return res.status(404).json({
 
-        success:false,
+        success: false,
 
-        message:"Attendance record not found."
+        message: "Attendance record not found."
 
       });
 
@@ -405,7 +405,7 @@ const getAttendanceById = async(req,res,next)=>{
 
 
 
-  }catch(error){
+  } catch (error) {
 
     next(error);
 
@@ -422,9 +422,9 @@ const getAttendanceById = async(req,res,next)=>{
 // UPDATE ATTENDANCE
 // =====================================
 
-const updateAttendance = async(req,res,next)=>{
+const updateAttendance = async (req, res, next) => {
 
-  try{
+  try {
 
 
     const attendance =
@@ -434,13 +434,13 @@ const updateAttendance = async(req,res,next)=>{
 
 
 
-    if(!attendance){
+    if (!attendance) {
 
       return res.status(404).json({
 
-        success:false,
+        success: false,
 
-        message:"Attendance record not found."
+        message: "Attendance record not found."
 
       });
 
@@ -461,7 +461,7 @@ const updateAttendance = async(req,res,next)=>{
 
 
 
-    if(attendance.records){
+    if (attendance.records) {
 
 
       attendance.memberCount =
@@ -506,7 +506,7 @@ const updateAttendance = async(req,res,next)=>{
 
 
 
-  }catch(error){
+  } catch (error) {
 
     next(error);
 
@@ -519,9 +519,9 @@ const updateAttendance = async(req,res,next)=>{
 // DELETE ATTENDANCE
 // =====================================
 
-const deleteAttendance = async(req,res,next)=>{
+const deleteAttendance = async (req, res, next) => {
 
-  try{
+  try {
 
 
     const attendance =
@@ -532,13 +532,13 @@ const deleteAttendance = async(req,res,next)=>{
 
 
 
-    if(!attendance){
+    if (!attendance) {
 
       return res.status(404).json({
 
-        success:false,
+        success: false,
 
-        message:"Attendance record not found."
+        message: "Attendance record not found."
 
       });
 
@@ -558,7 +558,7 @@ const deleteAttendance = async(req,res,next)=>{
 
 
 
-  }catch(error){
+  } catch (error) {
 
     next(error);
 
@@ -577,9 +577,9 @@ const deleteAttendance = async(req,res,next)=>{
 // GET /api/attendance/member/:memberId
 // =====================================
 
-const getMemberAttendance = async(req,res,next)=>{
+const getMemberAttendance = async (req, res, next) => {
 
-  try{
+  try {
 
 
     const records =
@@ -591,13 +591,13 @@ const getMemberAttendance = async(req,res,next)=>{
 
       })
 
-      .populate(
+        .populate(
 
-        "event",
+          "event",
 
-        "title startDate"
+          "title startDate"
 
-      );
+        );
 
 
 
@@ -614,7 +614,7 @@ const getMemberAttendance = async(req,res,next)=>{
 
 
 
-    records.forEach(record=>{
+    records.forEach(record => {
 
 
       const memberRecord =
@@ -623,17 +623,17 @@ const getMemberAttendance = async(req,res,next)=>{
 
           item =>
 
-          item.person.toString() ===
-          req.params.memberId
+            item.person.toString() ===
+            req.params.memberId
 
         );
 
 
 
-      if(memberRecord){
+      if (memberRecord) {
 
 
-        switch(memberRecord.status){
+        switch (memberRecord.status) {
 
 
           case "present":
@@ -709,15 +709,15 @@ const getMemberAttendance = async(req,res,next)=>{
 
           totalServices
 
-          ?
+            ?
 
-          `${Math.round(
-            (present / totalServices) * 100
-          )}%`
+            `${Math.round(
+              (present / totalServices) * 100
+            )}%`
 
-          :
+            :
 
-          "0%",
+            "0%",
 
 
         records
@@ -728,7 +728,7 @@ const getMemberAttendance = async(req,res,next)=>{
 
 
 
-  }catch(error){
+  } catch (error) {
 
     next(error);
 
@@ -742,111 +742,153 @@ const getMemberAttendance = async(req,res,next)=>{
 
 
 
-// =====================================
+
 // ATTENDANCE STATISTICS
-// =====================================
-
-const getAttendanceStats = async(req,res,next)=>{
-
-  try{
+// GET /api/attendance/stats
 
 
-    const totalServices =
+const getAttendanceStats = async (req, res, next) => {
+  try {
 
-      await Attendance.countDocuments();
-
-
-
+    // Overall attendance statistics
 
 
-    const result =
+    const totalServices = await Attendance.countDocuments();
 
-      await Attendance.aggregate([
-
-
-        {
-
-          $unwind:"$records"
-
+    const result = await Attendance.aggregate([
+      {
+        $unwind: "$records",
+      },
+      {
+        $group: {
+          _id: "$records.status",
+          count: {
+            $sum: 1,
+          },
         },
-
-
-        {
-
-          $group:{
-
-            _id:"$records.status",
-
-            count:{
-
-              $sum:1
-
-            }
-
-          }
-
-        }
-
-
-      ]);
-
-
-
-
+      },
+    ]);
 
     const stats = {
-
-      present:0,
-
-      absent:0,
-
-      late:0,
-
-      excused:0
-
+      present: 0,
+      absent: 0,
+      late: 0,
+      excused: 0,
     };
 
-
-
-
-
-    result.forEach(item=>{
-
-      stats[item._id] =
-        item.count;
-
+    result.forEach((item) => {
+      if (Object.prototype.hasOwnProperty.call(stats, item._id)) {
+        stats[item._id] = item.count;
+      }
     });
 
 
+    // Current week attendance
+    // Monday → Sunday
 
 
+    const now = new Date();
 
+    const startOfWeek = new Date(now);
+    const day = startOfWeek.getDay();
 
+    // Convert Sunday = 0 to Monday-based week
+    const daysFromMonday = day === 0 ? 6 : day - 1;
 
-    return successResponse(
+    startOfWeek.setDate(
+      startOfWeek.getDate() - daysFromMonday
+    );
 
-      res,
+    startOfWeek.setHours(0, 0, 0, 0);
 
-      "Attendance statistics retrieved.",
+    const endOfWeek = new Date(startOfWeek);
 
-      {
-
-        totalServices,
-
-        ...stats
-
-      }
-
+    endOfWeek.setDate(
+      endOfWeek.getDate() + 7
     );
 
 
+    // Group attendance by day
 
-  }catch(error){
 
+    const weeklyResult = await Attendance.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: startOfWeek,
+            $lt: endOfWeek,
+          },
+        },
+      },
+
+      {
+        $group: {
+          _id: {
+            $dayOfWeek: "$date",
+          },
+
+          attendance: {
+            $sum: "$totalCount",
+          },
+        },
+      },
+    ]);
+
+    // Create Monday → Sunday structure
+
+
+    const dayNames = [
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+    ];
+
+    const weeklyAttendance = dayNames.map(
+      (dayName, index) => {
+        // MongoDB:
+        // Sunday = 1
+        // Monday = 2
+        // Tuesday = 3
+        // ...
+        // Saturday = 7
+
+        const mongoDay = index === 6
+          ? 1
+          : index + 2;
+
+        const found = weeklyResult.find(
+          (item) =>
+            item._id === mongoDay
+        );
+
+        return {
+          day: dayName,
+          attendance: found
+            ? found.attendance
+            : 0,
+        };
+      }
+    );
+
+
+    // Response
+
+    return successResponse(
+      res,
+      "Attendance statistics retrieved.",
+      {
+        totalServices,
+        ...stats,
+        weeklyAttendance,
+      }
+    );
+  } catch (error) {
     next(error);
-
   }
-
 };
 
 
