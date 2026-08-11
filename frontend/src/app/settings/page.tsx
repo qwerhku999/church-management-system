@@ -110,10 +110,10 @@ function Toggle({
       >
         <span
           className={cn(
-            "absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform",
+            "absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-200 ease-in-out",
             checked
-              ? "translate-x-[22px]"
-              : "translate-x-0.5"
+              ? "translate-x-5"
+              : "translate-x-0"
           )}
         />
       </button>
@@ -282,9 +282,9 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           {/* Tabs */}
-          <nav className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+          <nav className="flex gap-2 overflow-x-auto lg:sticky lg:top-24 lg:flex-col lg:overflow-visible">
             {TABS.filter(
               ({ key }) =>
                 key !== "users" || canManageUsers
@@ -309,7 +309,7 @@ export default function SettingsPage() {
           </nav>
 
           {/* Panels */}
-          <div>
+          <div className="min-w-0 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto lg:pr-3">
             {/* Profile */}
             {tab === "profile" ? (
               <Card

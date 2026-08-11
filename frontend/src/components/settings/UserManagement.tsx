@@ -139,8 +139,7 @@ export default function UserManagement() {
         role
       );
 
-      const updated =
-        response?.data?.user;
+      const updated = response?.data?.user;
 
       setUsers((current) =>
         current.map((item) =>
@@ -188,16 +187,15 @@ export default function UserManagement() {
           targetUser._id
         );
 
-      const updated =
-        response?.data?.user;
+      const updated = response?.data?.user;
 
       setUsers((current) =>
         current.map((item) =>
           item._id === targetUser._id
             ? updated ?? {
-                ...item,
-                isActive: !item.isActive,
-              }
+              ...item,
+              isActive: !item.isActive,
+            }
             : item
         )
       );
@@ -225,7 +223,7 @@ export default function UserManagement() {
       title="User Management"
       description="Manage accounts, roles, and access across MinistryFlow."
     >
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
@@ -253,8 +251,8 @@ export default function UserManagement() {
         </div>
 
         {/* Filters */}
-        <div className="grid gap-3 sm:grid-cols-[1fr_220px]">
-          <div className="relative">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="relative min-w-0">
             <Search
               size={17}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]"
@@ -270,7 +268,7 @@ export default function UserManagement() {
             />
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-0">
             <select
               value={roleFilter}
               onChange={(event) =>
@@ -278,9 +276,7 @@ export default function UserManagement() {
               }
               className="h-11 w-full appearance-none rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-4 pr-10 text-sm outline-none focus:border-[var(--primary)]"
             >
-              <option value="all">
-                All roles
-              </option>
+              <option value="all">All roles</option>
 
               {ROLE_OPTIONS.map((role) => (
                 <option
@@ -299,8 +295,8 @@ export default function UserManagement() {
           </div>
         </div>
 
-        {/* Users */}
-        <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
+        {/* Users table */}
+        <div className="min-w-0 overflow-hidden rounded-xl border border-[var(--border)]">
           {loading ? (
             <div className="flex min-h-[220px] items-center justify-center">
               <RefreshCw
@@ -314,195 +310,218 @@ export default function UserManagement() {
                 size={30}
                 className="mb-3 text-[var(--muted)]"
               />
+
               <p className="font-medium">
                 No users found
               </p>
+
               <p className="mt-1 text-sm text-[var(--muted)]">
                 Try changing your search or role filter.
               </p>
             </div>
           ) : (
-            <table className="w-full min-w-[900px] text-left">
-              <thead>
-                <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]">
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                    User
-                  </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                    Role
-                  </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                    Last Login
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+            <div className="max-h-[430px] overflow-auto">
+              <table className="w-full min-w-[900px] table-fixed text-left">
+                <colgroup>
+                  <col className="w-[30%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[17%]" />
+                </colgroup>
 
-              <tbody>
-                {filteredUsers.map((item) => {
-                  const isCurrentUser =
-                    item._id === currentUser?._id;
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]">
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      User
+                    </th>
 
-                  const isSaving =
-                    savingId === item._id;
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      Role
+                    </th>
 
-                  return (
-                    <tr
-                      key={item._id}
-                      className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-hover)]/40"
-                    >
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-sm font-semibold text-[var(--primary)]">
-                            {initials(item)}
-                          </div>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      Status
+                    </th>
 
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="truncate text-sm font-semibold">
-                                {item.firstName}{" "}
-                                {item.lastName}
-                              </p>
+                    <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      Last Login
+                    </th>
 
-                              {isCurrentUser ? (
-                                <span className="rounded-full bg-[var(--primary-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--primary)]">
-                                  You
-                                </span>
-                              ) : null}
+                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredUsers.map((item) => {
+                    const isCurrentUser =
+                      item._id === currentUser?._id;
+
+                    const isSaving =
+                      savingId === item._id;
+
+                    return (
+                      <tr
+                        key={item._id}
+                        className="h-[76px] border-b border-[var(--border)] last:border-0 hover:bg-[var(--surface-hover)]/40"
+                      >
+                        {/* User */}
+                        <td className="px-4 py-4">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary-soft)] text-sm font-semibold text-[var(--primary)]">
+                              {initials(item)}
                             </div>
 
-                            <p className="truncate text-xs text-[var(--muted)]">
-                              {item.email}
-                            </p>
+                            <div className="min-w-0">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <p className="truncate text-sm font-semibold">
+                                  {item.firstName}{" "}
+                                  {item.lastName}
+                                </p>
+
+                                {isCurrentUser ? (
+                                  <span className="shrink-0 rounded-full bg-[var(--primary-soft)] px-2 py-0.5 text-[10px] font-semibold text-[var(--primary)]">
+                                    You
+                                  </span>
+                                ) : null}
+                              </div>
+
+                              <p className="truncate text-xs text-[var(--muted)]">
+                                {item.email}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
-                          {item.role === "super_admin" ? (
-                            <Shield
-                              size={15}
-                              className="text-purple-400"
-                            />
-                          ) : null}
+                        {/* Role */}
+                        <td className="px-4 py-4">
+                          <div className="flex min-w-0 items-center gap-2">
+                            {item.role === "super_admin" ? (
+                              <Shield
+                                size={15}
+                                className="shrink-0 text-purple-400"
+                              />
+                            ) : null}
 
-                          <select
-                            value={item.role}
-                            disabled={
-                              isCurrentUser ||
-                              isSaving
-                            }
-                            onChange={(event) =>
-                              void handleRoleChange(
-                                item,
-                                event.target
-                                  .value as Role
-                              )
-                            }
-                            className={cn(
-                              "rounded-lg border px-3 py-2 text-xs font-semibold outline-none",
-                              roleBadge(item.role),
-                              (isCurrentUser ||
-                                isSaving) &&
+                            <select
+                              value={item.role}
+                              disabled={
+                                isCurrentUser ||
+                                isSaving
+                              }
+                              onChange={(event) =>
+                                void handleRoleChange(
+                                  item,
+                                  event.target
+                                    .value as Role
+                                )
+                              }
+                              className={cn(
+                                "w-[210px] max-w-full rounded-lg border px-3 py-2 text-xs font-semibold outline-none",
+                                roleBadge(item.role),
+                                (isCurrentUser ||
+                                  isSaving) &&
                                 "cursor-not-allowed opacity-60"
-                            )}
-                          >
-                            {ROLE_OPTIONS.map(
-                              (role) => (
-                                <option
-                                  key={role}
-                                  value={role}
-                                >
-                                  {ROLE_LABELS[role]}
-                                </option>
-                              )
-                            )}
-                          </select>
-                        </div>
-                      </td>
+                              )}
+                            >
+                              {ROLE_OPTIONS.map(
+                                (role) => (
+                                  <option
+                                    key={role}
+                                    value={role}
+                                  >
+                                    {ROLE_LABELS[role]}
+                                  </option>
+                                )
+                              )}
+                            </select>
+                          </div>
+                        </td>
 
-                      <td className="px-4 py-4">
-                        <span
-                          className={cn(
-                            "inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold",
-                            item.isActive
-                              ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                              : "border-red-500/20 bg-red-500/10 text-red-300"
-                          )}
-                        >
+                        {/* Status */}
+                        <td className="px-4 py-4">
                           <span
                             className={cn(
-                              "h-1.5 w-1.5 rounded-full",
+                              "inline-flex whitespace-nowrap items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold",
                               item.isActive
-                                ? "bg-emerald-400"
-                                : "bg-red-400"
+                                ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
+                                : "border-red-500/20 bg-red-500/10 text-red-300"
                             )}
-                          />
-                          {item.isActive
-                            ? "Active"
-                            : "Inactive"}
-                        </span>
-                      </td>
+                          >
+                            <span
+                              className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                item.isActive
+                                  ? "bg-emerald-400"
+                                  : "bg-red-400"
+                              )}
+                            />
 
-                      <td className="px-4 py-4 text-sm text-[var(--muted)]">
-                        {item.lastLogin
-                          ? new Date(
+                            {item.isActive
+                              ? "Active"
+                              : "Inactive"}
+                          </span>
+                        </td>
+
+                        {/* Last Login */}
+                        <td className="px-4 py-4 text-sm whitespace-nowrap text-[var(--muted)]">
+                          {item.lastLogin
+                            ? new Date(
                               item.lastLogin
                             ).toLocaleDateString(
                               "en-GB"
                             )
-                          : "Never"}
-                      </td>
+                            : "Never"}
+                        </td>
 
-                      <td className="px-4 py-4 text-right">
-                        <button
-                          type="button"
-                          disabled={
-                            isCurrentUser ||
-                            isSaving
-                          }
-                          onClick={() =>
-                            void handleStatusChange(
-                              item
-                            )
-                          }
-                          className={cn(
-                            "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition",
-                            item.isActive
-                              ? "text-red-300 hover:bg-red-500/10"
-                              : "text-emerald-300 hover:bg-emerald-500/10",
-                            (isCurrentUser ||
-                              isSaving) &&
+                        {/* Actions */}
+                        <td className="px-4 py-4 text-right">
+                          <button
+                            type="button"
+                            disabled={
+                              isCurrentUser ||
+                              isSaving
+                            }
+                            onClick={() =>
+                              void handleStatusChange(
+                                item
+                              )
+                            }
+                            className={cn(
+                              "inline-flex min-w-[110px] items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition",
+                              item.isActive
+                                ? "text-red-300 hover:bg-red-500/10"
+                                : "text-emerald-300 hover:bg-emerald-500/10",
+                              (isCurrentUser ||
+                                isSaving) &&
                               "cursor-not-allowed opacity-40"
-                          )}
-                        >
-                          {item.isActive ? (
-                            <>
-                              <UserX size={15} />
-                              Deactivate
-                            </>
-                          ) : (
-                            <>
-                              <UserCheck size={15} />
-                              Activate
-                            </>
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            )}
+                          >
+                            {item.isActive ? (
+                              <>
+                                <UserX size={15} />
+                                Deactivate
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck size={15} />
+                                Activate
+                              </>
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
+        {/* Super Admin controls */}
         <div className="rounded-xl border border-[var(--primary)]/10 bg-[var(--primary-soft)] p-4">
           <div className="flex gap-3">
             <Shield
@@ -510,10 +529,11 @@ export default function UserManagement() {
               className="mt-0.5 shrink-0 text-[var(--primary)]"
             />
 
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold">
                 Super Admin controls
               </p>
+
               <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
                 Role changes are protected by the backend.
                 Only Super Admin accounts can promote or
