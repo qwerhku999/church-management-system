@@ -15,6 +15,9 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useAuth } from "@/hooks/useAuth";
 import { authService } from "@/services/auth.service";
+import churchSettingsService, {
+  ChurchSettings,
+} from "@/services/churchSettings.service";
 import { toast } from "@/components/ui/Toast";
 import UserManagement from "@/components/settings/UserManagement";
 import { getDisplayName } from "@/utils/helpers";
@@ -135,12 +138,22 @@ export default function SettingsPage() {
     email: user?.email ?? "",
   });
 
-  const [church, setChurch] = useState({
-    name: "MinistryFlow Community Church",
-    address: "Accra, Ghana",
-    phone: "+233 000 000 000",
-    currency: "GHS",
-  });
+  const [church, setChurch] =
+    useState<ChurchSettings>({
+      churchName: "MinistryFlow Community Church",
+      logo: "",
+      address: "Accra, Ghana",
+      phone: "+233 000 000 000",
+      currency: "GHS",
+      reportFooter:
+        "Official MinistryFlow Report",
+    });
+
+  const [churchLoading, setChurchLoading] =
+    useState(false);
+
+  const [logoUploading, setLogoUploading] =
+    useState(false);
 
   const [notifications, setNotifications] =
     useState<NotificationPreferences>(
@@ -260,6 +273,28 @@ export default function SettingsPage() {
     }
   };
 
+  useEffect(() => {
+    const loadChurchSettings =
+      async () => {
+        try {
+          setChurchLoading(true);
+
+          const settings =
+            await churchSettingsService.getSettings();
+
+          setChurch(settings);
+        } catch {
+          toast.error(
+            "Unable to load church settings"
+          );
+        } finally {
+          setChurchLoading(false);
+        }
+      };
+
+    loadChurchSettings();
+  }, []);
+
   const canManageUsers =
     user?.role === "super_admin" ||
     user?.role === "admin";
@@ -377,6 +412,7 @@ export default function SettingsPage() {
             ) : null}
 
             {/* Church */}
+            {/* Church */}
             {tab === "church" ? (
               <Card
                 title="Church settings"
@@ -385,6 +421,7 @@ export default function SettingsPage() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
+
                     toast.success(
                       "Church details saved"
                     );
@@ -393,11 +430,11 @@ export default function SettingsPage() {
                 >
                   <Input
                     label="Church name"
-                    value={church.name}
+                    value={church.churchName}
                     onChange={(e) =>
                       setChurch({
                         ...church,
-                        name: e.target.value,
+                        churchName: e.target.value,
                       })
                     }
                   />
@@ -437,13 +474,30 @@ export default function SettingsPage() {
                     }
                   />
 
+                  <Input
+                    label="Report footer"
+                    value={church.reportFooter}
+                    onChange={(e) =>
+                      setChurch({
+                        ...church,
+                        reportFooter: e.target.value,
+                      })
+                    }
+                  />
+
                   <div className="flex justify-end">
-                    <Button type="submit">
+                    <Button
+                      type="submit"
+                      disabled={churchLoading}
+                    >
                       <Save
                         size={16}
                         className="mr-2"
                       />
-                      Save changes
+
+                      {churchLoading
+                        ? "Loading…"
+                        : "Save changes"}
                     </Button>
                   </div>
                 </form>

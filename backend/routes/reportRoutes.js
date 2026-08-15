@@ -2,19 +2,16 @@ const express = require("express");
 
 const router = express.Router();
 
-const reportController =
-require("../controllers/reportController");
+const reportController = require("../controllers/reportController");
 
 const {
     protect,
-    authorize
-}=require("../middleware/auth");
-
-
+    authorize,
+} = require("../middleware/auth");
 
 router.use(protect);
 
-
+// Members
 
 router.get(
     "/members",
@@ -26,7 +23,17 @@ router.get(
     reportController.getMemberReport
 );
 
+router.get(
+    "/members/pdf",
+    authorize(
+        "super_admin",
+        "admin",
+        "pastor"
+    ),
+    reportController.downloadMemberReportPdf
+);
 
+// Attendance
 
 router.get(
     "/attendance",
@@ -38,7 +45,17 @@ router.get(
     reportController.getAttendanceReport
 );
 
+router.get(
+    "/attendance/pdf",
+    authorize(
+        "super_admin",
+        "admin",
+        "pastor"
+    ),
+    reportController.downloadAttendanceReportPdf
+);
 
+// Finance
 
 router.get(
     "/finance",
@@ -51,7 +68,18 @@ router.get(
     reportController.getFinanceReport
 );
 
+router.get(
+    "/finance/pdf",
+    authorize(
+        "super_admin",
+        "admin",
+        "treasurer",
+        "finance_officer"
+    ),
+    reportController.downloadFinanceReportPdf
+);
 
+// Overview
 
 router.get(
     "/overview",
@@ -63,6 +91,14 @@ router.get(
     reportController.getOverviewReport
 );
 
-
+router.get(
+    "/overview/pdf",
+    authorize(
+        "super_admin",
+        "admin",
+        "pastor"
+    ),
+    reportController.downloadOverviewReportPdf
+);
 
 module.exports = router;

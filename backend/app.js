@@ -78,6 +78,7 @@ app.use("/api/documents", require("./routes/documentRoutes"));
 app.use("/api/prayers", require("./routes/prayerRoutes"));
 app.use("/api/visitors", require("./routes/visitorRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api/church-settings", require("./routes/churchSettingsRoutes"));
 
 // =====================================
 // Health Check
@@ -127,3 +128,4 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
