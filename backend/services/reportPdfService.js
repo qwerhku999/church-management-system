@@ -1,35 +1,13 @@
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
+const mongoose = require("mongoose");
 
 /*
 |--------------------------------------------------------------------------
 | MinistryFlow PDF Report Service
 |--------------------------------------------------------------------------
-|
-| Layout:
-|
-|   ┌──────────────────────────────────────────────┐
-|   │  CHURCH LOGO          CHURCH NAME            │
-|   │                                              │
-|   │              REPORT NAME                    │
-|   │                                              │
-|   │  ┌────────────────────────────────────────┐  │
-|   │  │                                        │  │
-|   │  │          REPORT CONTENT                │  │
-|   │  │                                        │  │
-|   │  └────────────────────────────────────────┘  │
-|   │                                              │
-|   │       COPYRIGHT / OFFICIAL DOCUMENT         │
-|   └──────────────────────────────────────────────┘
-|
-|--------------------------------------------------------------------------
 */
-
-
-// ============================================================================
-// COLORS
-// ============================================================================
 
 const COLORS = {
   black: "#111111",
@@ -40,11 +18,6 @@ const COLORS = {
   veryLightGray: "#F5F5F5",
   white: "#FFFFFF",
 };
-
-
-// ============================================================================
-// A4 PAGE SETTINGS
-// ============================================================================
 
 const PAGE = {
   width: 595.28,
@@ -58,20 +31,237 @@ const PAGE = {
 
   contentTop: 175,
 
-  // IMPORTANT:
-  // Keep the content box above the footer.
   contentBottom: 730,
 
   footerTop: 755,
 };
 
 
-// ============================================================================
-// GENERAL HELPERS
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| CHURCH SETTINGS
+|--------------------------------------------------------------------------
+|
+| The church settings are stored in MongoDB.
+| The PDF previously looked only at CHURCH_LOGO_PATH,
+| which is why it displayed the placeholder.
+|
+| We now read the same churchsettings document used
+| by the Settings page.
+|
+|--------------------------------------------------------------------------
+*/
 
-const formatCurrency = (value) => {
-  return `GHS ${Number(value || 0).toLocaleString("en-GH", {
+const DEFAULT_CHURCH_SETTINGS = {
+  churchName:
+    process.env.CHURCH_NAME ||
+    process.env.MINISTRY_NAME ||
+    "MinistryFlow Church",
+
+  logo: null,
+
+  currency: "GHS",
+
+  reportFooter:
+    "Official MinistryFlow Report",
+};
+
+
+const getChurchSettings = async () => {
+  try {
+    if (
+      !mongoose.connection ||
+      mongoose.connection.readyState !== 1
+    ) {
+      return DEFAULT_CHURCH_SETTINGS;
+    }
+
+    const collection =
+      mongoose.connection.db.collection(
+        "churchsettings"
+      );
+
+    const settings =
+      await collection.findOne({});
+
+    if (!settings) {
+      return DEFAULT_CHURCH_SETTINGS;
+    }
+
+    return {
+      ...DEFAULT_CHURCH_SETTINGS,
+
+      churchName:
+        settings.churchName ||
+        DEFAULT_CHURCH_SETTINGS.churchName,
+
+      logo:
+        settings.logo ||
+        null,
+
+      currency:
+        settings.currency ||
+        DEFAULT_CHURCH_SETTINGS.currency,
+
+      reportFooter:
+        settings.reportFooter ||
+        DEFAULT_CHURCH_SETTINGS.reportFooter,
+    };
+  } catch (error) {
+    console.warn(
+      "Unable to load church settings for PDF:",
+      error.message
+    );
+
+    return DEFAULT_CHURCH_SETTINGS;
+  }
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| LOGO PATH RESOLUTION
+|--------------------------------------------------------------------------
+|
+| MongoDB stores the logo as something like:
+|
+| /uploads/church-logo/filename.png
+|
+| The browser can use that URL directly, but PDFKit
+| needs a real filesystem path.
+|
+|--------------------------------------------------------------------------
+*/
+
+const resolveLogoPath = (logo) => {
+  /*
+  |--------------------------------------------------------------------------
+  | Database logo
+  |--------------------------------------------------------------------------
+  */
+
+  if (logo) {
+    try {
+      let logoValue = String(logo).trim();
+
+      if (logoValue) {
+        logoValue = logoValue.replace(/\\/g, "/");
+
+        /*
+        | Absolute URL
+        */
+        if (
+          logoValue.startsWith("http://") ||
+          logoValue.startsWith("https://")
+        ) {
+          const url = new URL(logoValue);
+
+          logoValue = decodeURIComponent(
+            url.pathname
+          );
+        }
+
+        /*
+        | Absolute Windows path
+        */
+        if (
+          path.isAbsolute(logoValue) &&
+          fs.existsSync(logoValue)
+        ) {
+          return logoValue;
+        }
+
+        /*
+        | /uploads/... or uploads/...
+        |
+        | __dirname:
+        | backend/services
+        |
+        | backend root:
+        | backend
+        */
+        const backendRoot =
+          path.resolve(__dirname, "..");
+
+        const relativeLogo =
+          logoValue.replace(
+            /^[/\\]+/,
+            ""
+          );
+
+        const candidate =
+          path.resolve(
+            backendRoot,
+            relativeLogo
+          );
+
+        if (fs.existsSync(candidate)) {
+          return candidate;
+        }
+
+        /*
+        | Sometimes only the filename is stored.
+        */
+        const uploadsCandidate =
+          path.resolve(
+            backendRoot,
+            "uploads",
+            path.basename(
+              logoValue
+            )
+          );
+
+        if (
+          fs.existsSync(
+            uploadsCandidate
+          )
+        ) {
+          return uploadsCandidate;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "Unable to resolve church logo:",
+        error.message
+      );
+    }
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Environment fallback
+  |--------------------------------------------------------------------------
+  */
+
+  if (process.env.CHURCH_LOGO_PATH) {
+    const logoPath = path.resolve(
+      process.env.CHURCH_LOGO_PATH
+    );
+
+    if (fs.existsSync(logoPath)) {
+      return logoPath;
+    }
+  }
+
+
+  return null;
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| GENERAL HELPERS
+|--------------------------------------------------------------------------
+*/
+
+const formatCurrency = (
+  value,
+  currency = "GHS"
+) => {
+  return `${currency} ${Number(
+    value || 0
+  ).toLocaleString("en-GH", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -79,81 +269,97 @@ const formatCurrency = (value) => {
 
 
 const formatLabel = (value) => {
-  if (!value) return "Unknown";
+  if (!value) {
+    return "Unknown";
+  }
 
   return String(value)
     .replace(/_/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+    .replace(
+      /\b\w/g,
+      (char) => char.toUpperCase()
+    );
 };
 
 
 const formatDate = () => {
-  return new Date().toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-};
-
-
-// ============================================================================
-// CHURCH SETTINGS
-// ============================================================================
-
-const getChurchName = () => {
-  return (
-    process.env.CHURCH_NAME ||
-    process.env.MINISTRY_NAME ||
-    "MinistryFlow Church"
+  return new Date().toLocaleDateString(
+    "en-GB",
+    {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    }
   );
 };
 
 
-const getLogoPath = () => {
-  if (!process.env.CHURCH_LOGO_PATH) {
-    return null;
-  }
+/*
+|--------------------------------------------------------------------------
+| CHURCH LOGO
+|--------------------------------------------------------------------------
+*/
 
-  const logoPath = path.resolve(
-    process.env.CHURCH_LOGO_PATH
-  );
-
-  if (fs.existsSync(logoPath)) {
-    return logoPath;
-  }
-
-  return null;
-};
-
-
-// ============================================================================
-// CHURCH LOGO
-// ============================================================================
-
-const drawLogo = (doc) => {
+const drawLogo = (
+  doc,
+  churchSettings
+) => {
   const x = PAGE.margin;
   const y = PAGE.headerTop;
 
-  const logoPath = getLogoPath();
+  const logoPath = resolveLogoPath(
+    churchSettings.logo
+  );
+
 
   /*
   |--------------------------------------------------------------------------
-  | Real Church Logo
+  | REAL CHURCH LOGO
   |--------------------------------------------------------------------------
   */
 
   if (logoPath) {
     try {
-      doc.image(logoPath, x, y, {
-        fit: [
-          PAGE.logoSize,
-          PAGE.logoSize,
-        ],
-        align: "center",
-        valign: "center",
-      });
+      /*
+      | PDFKit has reliable support for PNG/JPEG.
+      | The Settings page accepts WebP, but PDFKit may
+      | not be able to embed WebP directly.
+      |
+      | If the uploaded logo is PNG/JPEG, it will be
+      | rendered directly here.
+      */
+      const extension =
+        path
+          .extname(logoPath)
+          .toLowerCase();
 
-      return;
+      if (
+        extension === ".png" ||
+        extension === ".jpg" ||
+        extension === ".jpeg"
+      ) {
+        doc.image(
+          logoPath,
+          x,
+          y,
+          {
+            fit: [
+              PAGE.logoSize,
+              PAGE.logoSize,
+            ],
+
+            align: "center",
+
+            valign: "center",
+          }
+        );
+
+        return;
+      }
+
+      console.warn(
+        `PDFKit cannot directly embed ${extension} logo.`
+      );
     } catch (error) {
       console.warn(
         "Unable to load church logo:",
@@ -165,15 +371,21 @@ const drawLogo = (doc) => {
 
   /*
   |--------------------------------------------------------------------------
-  | Temporary Logo Placeholder
+  | PLACEHOLDER
+  |--------------------------------------------------------------------------
+  |
+  | Only shown when no usable logo exists.
+  |
   |--------------------------------------------------------------------------
   */
 
   const centerX =
-    x + PAGE.logoSize / 2;
+    x +
+    PAGE.logoSize / 2;
 
   const centerY =
-    y + PAGE.logoSize / 2;
+    y +
+    PAGE.logoSize / 2;
 
   const radius =
     PAGE.logoSize / 2;
@@ -187,21 +399,28 @@ const drawLogo = (doc) => {
       radius
     )
     .lineWidth(1.3)
-    .strokeColor(COLORS.black)
+    .strokeColor(
+      COLORS.black
+    )
     .stroke();
 
 
   doc
     .font("Helvetica-Bold")
     .fontSize(8)
-    .fillColor(COLORS.black)
+    .fillColor(
+      COLORS.black
+    )
     .text(
       "CHURCH\nLOGO",
       x,
       y + 19,
       {
-        width: PAGE.logoSize,
+        width:
+          PAGE.logoSize,
+
         align: "center",
+
         lineGap: 1,
       }
     )
@@ -209,18 +428,28 @@ const drawLogo = (doc) => {
 };
 
 
-// ============================================================================
-// HEADER
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| HEADER
+|--------------------------------------------------------------------------
+*/
 
 const drawHeader = (
   doc,
-  reportTitle
+  reportTitle,
+  churchSettings
 ) => {
-  const logoX = PAGE.margin;
-  const logoY = PAGE.headerTop;
+  const logoX =
+    PAGE.margin;
 
-  drawLogo(doc);
+  const logoY =
+    PAGE.headerTop;
+
+
+  drawLogo(
+    doc,
+    churchSettings
+  );
 
 
   /*
@@ -234,6 +463,7 @@ const drawHeader = (
     PAGE.logoSize +
     25;
 
+
   const availableWidth =
     PAGE.width -
     churchNameX -
@@ -243,13 +473,23 @@ const drawHeader = (
   doc
     .font("Helvetica-Bold")
     .fontSize(20)
-    .fillColor(COLORS.black)
+    .fillColor(
+      COLORS.black
+    )
     .text(
-      getChurchName().toUpperCase(),
+      String(
+        churchSettings.churchName ||
+        "MinistryFlow Church"
+      ).toUpperCase(),
+
       churchNameX,
+
       logoY + 8,
+
       {
-        width: availableWidth,
+        width:
+          availableWidth,
+
         align: "center",
       }
     );
@@ -264,14 +504,22 @@ const drawHeader = (
   doc
     .font("Helvetica")
     .fontSize(7.5)
-    .fillColor(COLORS.gray)
+    .fillColor(
+      COLORS.gray
+    )
     .text(
       "MINISTRY MANAGEMENT SYSTEM",
+
       churchNameX,
+
       logoY + 37,
+
       {
-        width: availableWidth,
+        width:
+          availableWidth,
+
         align: "center",
+
         characterSpacing: 0.8,
       }
     );
@@ -295,11 +543,14 @@ const drawHeader = (
       dividerY
     )
     .lineTo(
-      PAGE.width - PAGE.margin,
+      PAGE.width -
+      PAGE.margin,
       dividerY
     )
     .lineWidth(1)
-    .strokeColor(COLORS.black)
+    .strokeColor(
+      COLORS.black
+    )
     .stroke();
 
 
@@ -312,15 +563,21 @@ const drawHeader = (
   doc
     .font("Helvetica-Bold")
     .fontSize(14)
-    .fillColor(COLORS.black)
+    .fillColor(
+      COLORS.black
+    )
     .text(
       reportTitle.toUpperCase(),
+
       PAGE.margin,
+
       dividerY + 12,
+
       {
         width:
           PAGE.width -
           PAGE.margin * 2,
+
         align: "center",
       }
     );
@@ -335,26 +592,34 @@ const drawHeader = (
   doc
     .font("Helvetica")
     .fontSize(7.5)
-    .fillColor(COLORS.gray)
+    .fillColor(
+      COLORS.gray
+    )
     .text(
       `Generated ${formatDate()}`,
+
       PAGE.margin,
+
       dividerY + 31,
+
       {
         width:
           PAGE.width -
           PAGE.margin * 2,
+
         align: "center",
       }
     );
 };
 
 
-// ============================================================================
-// CONTENT BOX
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| CONTENT AREA
+|--------------------------------------------------------------------------
+*/
 
-const drawContentBox = (doc) => {
+const drawContentBox = () => {
   const x = PAGE.margin;
   const y = PAGE.contentTop;
 
@@ -366,25 +631,10 @@ const drawContentBox = (doc) => {
     PAGE.contentBottom -
     PAGE.contentTop;
 
-
   /*
-  |--------------------------------------------------------------------------
-  | Main Report Box
-  |--------------------------------------------------------------------------
+  | No visible rectangle.
+  | This only defines the content area.
   */
-
-  doc
-    .roundedRect(
-      x,
-      y,
-      width,
-      height,
-      5
-    )
-    .lineWidth(1.2)
-    .strokeColor(COLORS.black)
-    .stroke();
-
 
   return {
     x,
@@ -392,8 +642,11 @@ const drawContentBox = (doc) => {
     width,
     height,
 
-    innerX: x + 20,
-    innerY: y + 20,
+    innerX:
+      x + 20,
+
+    innerY:
+      y + 20,
 
     innerWidth:
       width - 40,
@@ -403,21 +656,19 @@ const drawContentBox = (doc) => {
   };
 };
 
+/*
+|--------------------------------------------------------------------------
+| FOOTER
+|--------------------------------------------------------------------------
+*/
 
-// ============================================================================
-// FOOTER
-// ============================================================================
-
-const drawFooter = (doc) => {
+const drawFooter = (
+  doc,
+  churchSettings
+) => {
   const footerY =
     PAGE.footerTop;
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | Footer Divider
-  |--------------------------------------------------------------------------
-  */
 
   doc
     .save()
@@ -426,11 +677,14 @@ const drawFooter = (doc) => {
       footerY
     )
     .lineTo(
-      PAGE.width - PAGE.margin,
+      PAGE.width -
+      PAGE.margin,
       footerY
     )
     .lineWidth(0.8)
-    .strokeColor(COLORS.lightGray)
+    .strokeColor(
+      COLORS.lightGray
+    )
     .stroke();
 
 
@@ -443,15 +697,24 @@ const drawFooter = (doc) => {
   doc
     .font("Helvetica")
     .fontSize(7.5)
-    .fillColor(COLORS.gray)
+    .fillColor(
+      COLORS.gray
+    )
     .text(
-      `© ${new Date().getFullYear()} ${getChurchName()} • Official MinistryFlow Report`,
+      `© ${new Date().getFullYear()} ${churchSettings.churchName
+      } • ${churchSettings.reportFooter ||
+      "Official MinistryFlow Report"
+      }`,
+
       PAGE.margin,
+
       footerY + 9,
+
       {
         width:
           PAGE.width -
           PAGE.margin * 2,
+
         align: "center",
       }
     );
@@ -466,16 +729,23 @@ const drawFooter = (doc) => {
   doc
     .font("Helvetica-Bold")
     .fontSize(7)
-    .fillColor(COLORS.gray)
+    .fillColor(
+      COLORS.gray
+    )
     .text(
       "OFFICIAL DOCUMENT",
+
       PAGE.margin,
+
       footerY + 24,
+
       {
         width:
           PAGE.width -
           PAGE.margin * 2,
+
         align: "center",
+
         characterSpacing: 0.8,
       }
     )
@@ -483,37 +753,47 @@ const drawFooter = (doc) => {
 };
 
 
-// ============================================================================
-// DOCUMENT CREATION
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| DOCUMENT CREATION
+|--------------------------------------------------------------------------
+*/
 
-const createDocument = (
+const createDocument = async (
   reportTitle,
   filename,
   res
 ) => {
-  const doc = new PDFDocument({
-    size: "A4",
+  /*
+  |--------------------------------------------------------------------------
+  | Load the CURRENT church settings from MongoDB
+  |--------------------------------------------------------------------------
+  */
 
-    /*
-    |--------------------------------------------------------------------------
-    | IMPORTANT
-    |--------------------------------------------------------------------------
-    |
-    | We use a smaller bottom margin because the footer is
-    | positioned manually.
-    |
-    */
+  const churchSettings =
+    await getChurchSettings();
 
-    margins: {
-      top: PAGE.margin,
-      bottom: PAGE.margin,
-      left: PAGE.margin,
-      right: PAGE.margin,
-    },
 
-    autoFirstPage: true,
-  });
+  const doc =
+    new PDFDocument({
+      size: "A4",
+
+      margins: {
+        top:
+          PAGE.margin,
+
+        bottom:
+          PAGE.margin,
+
+        left:
+          PAGE.margin,
+
+        right:
+          PAGE.margin,
+      },
+
+      autoFirstPage: true,
+    });
 
 
   res.setHeader(
@@ -533,13 +813,14 @@ const createDocument = (
 
   /*
   |--------------------------------------------------------------------------
-  | Draw static page layout FIRST
+  | Draw static page layout
   |--------------------------------------------------------------------------
   */
 
   drawHeader(
     doc,
-    reportTitle
+    reportTitle,
+    churchSettings
   );
 
 
@@ -550,13 +831,16 @@ const createDocument = (
   return {
     doc,
     content,
+    churchSettings,
   };
 };
 
 
-// ============================================================================
-// SECTION TITLE
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| SECTION TITLE
+|--------------------------------------------------------------------------
+*/
 
 const addSectionTitle = (
   doc,
@@ -568,7 +852,9 @@ const addSectionTitle = (
   doc
     .font("Helvetica-Bold")
     .fontSize(10)
-    .fillColor(COLORS.black)
+    .fillColor(
+      COLORS.black
+    )
     .text(
       title.toUpperCase(),
       x,
@@ -593,7 +879,9 @@ const addSectionTitle = (
       lineY
     )
     .lineWidth(0.6)
-    .strokeColor(COLORS.lightGray)
+    .strokeColor(
+      COLORS.lightGray
+    )
     .stroke();
 
 
@@ -601,9 +889,11 @@ const addSectionTitle = (
 };
 
 
-// ============================================================================
-// METRIC CARD
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| METRIC CARD
+|--------------------------------------------------------------------------
+*/
 
 const drawMetricCard = (
   doc,
@@ -614,12 +904,6 @@ const drawMetricCard = (
   label,
   value
 ) => {
-  /*
-  |--------------------------------------------------------------------------
-  | Card
-  |--------------------------------------------------------------------------
-  */
-
   doc
     .roundedRect(
       x,
@@ -649,52 +933,53 @@ const drawMetricCard = (
     .stroke();
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | Label
-  |--------------------------------------------------------------------------
-  */
-
   doc
     .font("Helvetica-Bold")
     .fontSize(7)
-    .fillColor(COLORS.gray)
+    .fillColor(
+      COLORS.gray
+    )
     .text(
       label.toUpperCase(),
       x + 8,
       y + 10,
       {
-        width: width - 16,
+        width:
+          width - 16,
+
         align: "center",
       }
     );
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | Value
-  |--------------------------------------------------------------------------
-  */
-
   doc
     .font("Helvetica-Bold")
     .fontSize(13)
-    .fillColor(COLORS.black)
+    .fillColor(
+      COLORS.black
+    )
     .text(
       String(value),
+
       x + 8,
+
       y + 29,
+
       {
-        width: width - 16,
+        width:
+          width - 16,
+
         align: "center",
       }
     );
 };
 
 
-// ============================================================================
-// METRIC CARDS
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| METRIC CARDS
+|--------------------------------------------------------------------------
+*/
 
 const drawMetricCards = (
   doc,
@@ -707,18 +992,27 @@ const drawMetricCards = (
 
   const cardWidth =
     cards.length === 1
-      ? Math.min(170, width)
+      ? Math.min(
+        170,
+        width
+      )
       : (
         width -
-        gap * (cards.length - 1)
-      ) / cards.length;
+        gap *
+        (cards.length - 1)
+      ) /
+      cards.length;
 
 
-  const cardHeight = 60;
+  const cardHeight =
+    60;
 
 
   cards.forEach(
-    (card, index) => {
+    (
+      card,
+      index
+    ) => {
       drawMetricCard(
         doc,
 
@@ -744,9 +1038,11 @@ const drawMetricCards = (
 };
 
 
-// ============================================================================
-// TABLE
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| TABLE
+|--------------------------------------------------------------------------
+*/
 
 const drawTable = (
   doc,
@@ -756,18 +1052,16 @@ const drawTable = (
   y,
   width
 ) => {
-  const headerHeight = 24;
-  const rowHeight = 22;
+  const headerHeight =
+    24;
+
+  const rowHeight =
+    22;
 
   const columnWidth =
-    width / columns.length;
+    width /
+    columns.length;
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | Header Background
-  |--------------------------------------------------------------------------
-  */
 
   doc
     .rect(
@@ -776,24 +1070,28 @@ const drawTable = (
       width,
       headerHeight
     )
-    .fillColor(COLORS.black)
+    .fillColor(
+      COLORS.black
+    )
     .fill();
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | Header Text
-  |--------------------------------------------------------------------------
-  */
-
   columns.forEach(
-    (column, index) => {
+    (
+      column,
+      index
+    ) => {
       doc
-        .font("Helvetica-Bold")
+        .font(
+          "Helvetica-Bold"
+        )
         .fontSize(7.5)
-        .fillColor(COLORS.white)
+        .fillColor(
+          COLORS.white
+        )
         .text(
           column.toUpperCase(),
+
           x +
           index *
           columnWidth +
@@ -803,7 +1101,8 @@ const drawTable = (
 
           {
             width:
-              columnWidth - 16,
+              columnWidth -
+              16,
 
             align:
               index === 0
@@ -815,14 +1114,11 @@ const drawTable = (
   );
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | Rows
-  |--------------------------------------------------------------------------
-  */
-
   rows.forEach(
-    (row, rowIndex) => {
+    (
+      row,
+      rowIndex
+    ) => {
       const rowY =
         y +
         headerHeight +
@@ -830,11 +1126,10 @@ const drawTable = (
         rowHeight;
 
 
-      /*
-      | Alternating background
-      */
-
-      if (rowIndex % 2 === 0) {
+      if (
+        rowIndex % 2 ===
+        0
+      ) {
         doc
           .rect(
             x,
@@ -849,25 +1144,30 @@ const drawTable = (
       }
 
 
-      /*
-      | Cell values
-      */
-
       columns.forEach(
-        (column, columnIndex) => {
+        (
+          column,
+          columnIndex
+        ) => {
           const value =
-            row[columnIndex] ===
-              null ||
-              row[columnIndex] ===
-              undefined
+            row[
+              columnIndex
+            ] === null ||
+              row[
+              columnIndex
+              ] === undefined
               ? ""
               : String(
-                row[columnIndex]
+                row[
+                columnIndex
+                ]
               );
 
 
           doc
-            .font("Helvetica")
+            .font(
+              "Helvetica"
+            )
             .fontSize(8)
             .fillColor(
               COLORS.black
@@ -897,18 +1197,16 @@ const drawTable = (
       );
 
 
-      /*
-      | Row divider
-      */
-
       doc
         .moveTo(
           x,
-          rowY + rowHeight
+          rowY +
+          rowHeight
         )
         .lineTo(
           x + width,
-          rowY + rowHeight
+          rowY +
+          rowHeight
         )
         .lineWidth(0.5)
         .strokeColor(
@@ -918,12 +1216,6 @@ const drawTable = (
     }
   );
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | Outer border
-  |--------------------------------------------------------------------------
-  */
 
   const tableHeight =
     headerHeight +
@@ -952,9 +1244,11 @@ const drawTable = (
 };
 
 
-// ============================================================================
-// INFORMATION ROW
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| INFORMATION ROW
+|--------------------------------------------------------------------------
+*/
 
 const drawInfoRow = (
   doc,
@@ -972,15 +1266,20 @@ const drawInfoRow = (
 
 
   doc
-    .font("Helvetica-Bold")
+    .font(
+      "Helvetica-Bold"
+    )
     .fontSize(8.5)
-    .fillColor(COLORS.dark)
+    .fillColor(
+      COLORS.dark
+    )
     .text(
       label,
       x,
       y,
       {
-        width: labelWidth,
+        width:
+          labelWidth,
       }
     );
 
@@ -988,13 +1287,18 @@ const drawInfoRow = (
   doc
     .font("Helvetica")
     .fontSize(8.5)
-    .fillColor(COLORS.black)
+    .fillColor(
+      COLORS.black
+    )
     .text(
       String(value),
-      x + labelWidth,
+      x +
+      labelWidth,
       y,
       {
-        width: valueWidth,
+        width:
+          valueWidth,
+
         align: "right",
       }
     );
@@ -1020,18 +1324,21 @@ const drawInfoRow = (
 };
 
 
-// ============================================================================
-// MEMBER REPORT
-// ============================================================================
+/*
+|--------------------------------------------------------------------------
+| MEMBER REPORT
+|--------------------------------------------------------------------------
+*/
 
-const generateMemberReportPdf = (
+const generateMemberReportPdf = async (
   report,
   res
 ) => {
   const {
     doc,
     content,
-  } = createDocument(
+    churchSettings,
+  } = await createDocument(
     "Member Report",
     "ministryflow-member-report.pdf",
     res
@@ -1041,12 +1348,6 @@ const generateMemberReportPdf = (
   let y =
     content.innerY;
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | Membership Summary
-  |--------------------------------------------------------------------------
-  */
 
   y =
     addSectionTitle(
@@ -1105,12 +1406,6 @@ const generateMemberReportPdf = (
   y += 26;
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | Gender Distribution
-  |--------------------------------------------------------------------------
-  */
-
   y =
     addSectionTitle(
       doc,
@@ -1134,8 +1429,548 @@ const generateMemberReportPdf = (
     const rows =
       report.genderDistribution.map(
         (item) => [
+          formatLabel(
+            item._id
+          ),
+
+          item.count ??
+          0,
+        ]
+      );
+
+
+    drawTable(
+      doc,
+      ["Gender", "Members"],
+      rows,
+      content.innerX,
+      y,
+      content.innerWidth
+    );
+  } else {
+    doc
+      .font("Helvetica")
+      .fontSize(8.5)
+      .fillColor(
+        COLORS.gray
+      )
+      .text(
+        "No gender distribution data available.",
+        content.innerX,
+        y
+      );
+  }
+
+
+  drawFooter(
+    doc,
+    churchSettings
+  );
+
+
+  doc.end();
+};
+
+
+/*
+|--------------------------------------------------------------------------
+| ATTENDANCE REPORT
+|--------------------------------------------------------------------------
+*/
+
+const generateAttendanceReportPdf =
+  async (
+    report,
+    res
+  ) => {
+    const {
+      doc,
+      content,
+      churchSettings,
+    } = await createDocument(
+      "Attendance Report",
+      "ministryflow-attendance-report.pdf",
+      res
+    );
+
+
+    let y =
+      content.innerY;
+
+
+    y =
+      addSectionTitle(
+        doc,
+        "Attendance Summary",
+        content.innerX,
+        y,
+        content.innerWidth
+      );
+
+
+    y += 5;
+
+
+    y =
+      drawMetricCards(
+        doc,
+
+        [
+          {
+            label:
+              "Total Attendance",
+
+            value:
+              report.totalAttendance ??
+              0,
+          },
+        ],
+
+        content.innerX,
+
+        y,
+
+        content.innerWidth
+      );
+
+
+    y += 26;
+
+
+    y =
+      addSectionTitle(
+        doc,
+        "Service Breakdown",
+        content.innerX,
+        y,
+        content.innerWidth
+      );
+
+
+    y += 5;
+
+
+    if (
+      Array.isArray(
+        report.serviceBreakdown
+      ) &&
+      report.serviceBreakdown.length >
+      0
+    ) {
+      const rows =
+        report.serviceBreakdown.map(
+          (item) => [
+            formatLabel(
+              item._id
+            ),
+
+            item.total ??
+            0,
+          ]
+        );
+
+
+      drawTable(
+        doc,
+        [
+          "Service",
+          "Attendance",
+        ],
+        rows,
+        content.innerX,
+        y,
+        content.innerWidth
+      );
+    } else {
+      doc
+        .font("Helvetica")
+        .fontSize(8.5)
+        .fillColor(
+          COLORS.gray
+        )
+        .text(
+          "No attendance breakdown data available.",
+          content.innerX,
+          y
+        );
+    }
+
+
+    drawFooter(
+      doc,
+      churchSettings
+    );
+
+
+    doc.end();
+  };
+
+
+/*
+|--------------------------------------------------------------------------
+| FINANCE REPORT
+|--------------------------------------------------------------------------
+*/
+
+const generateFinanceReportPdf =
+  async (
+    report,
+    res
+  ) => {
+    const {
+      doc,
+      content,
+      churchSettings,
+    } = await createDocument(
+      "Finance Report",
+      "ministryflow-finance-report.pdf",
+      res
+    );
+
+
+    let y =
+      content.innerY;
+
+
+    y =
+      addSectionTitle(
+        doc,
+        "Financial Summary",
+        content.innerX,
+        y,
+        content.innerWidth
+      );
+
+
+    y += 5;
+
+
+    y =
+      drawMetricCards(
+        doc,
+
+        [
+          {
+            label:
+              "Total Income",
+
+            value:
+              formatCurrency(
+                report.income,
+                churchSettings.currency
+              ),
+          },
+
+          {
+            label:
+              "Total Expenses",
+
+            value:
+              formatCurrency(
+                report.expenses,
+                churchSettings.currency
+              ),
+          },
+
+          {
+            label:
+              "Balance",
+
+            value:
+              formatCurrency(
+                report.balance,
+                churchSettings.currency
+              ),
+          },
+        ],
+
+        content.innerX,
+
+        y,
+
+        content.innerWidth
+      );
+
+
+    y += 26;
+
+
+    y =
+      addSectionTitle(
+        doc,
+        "Monthly Finance",
+        content.innerX,
+        y,
+        content.innerWidth
+      );
+
+
+    y += 5;
+
+
+    if (
+      Array.isArray(
+        report.monthly
+      ) &&
+      report.monthly.length >
+      0
+    ) {
+      const rows =
+        report.monthly.map(
+          (item) => {
+            const year =
+              item._id?.year ??
+              "";
+
+            const month =
+              item._id?.month ??
+              "";
+
+
+            return [
+              `${month}/${year}`,
+
+              formatCurrency(
+                item.total,
+                churchSettings.currency
+              ),
+            ];
+          }
+        );
+
+
+      drawTable(
+        doc,
+        [
+          "Period",
+          "Amount",
+        ],
+        rows,
+        content.innerX,
+        y,
+        content.innerWidth
+      );
+    } else {
+      doc
+        .font("Helvetica")
+        .fontSize(8.5)
+        .fillColor(
+          COLORS.gray
+        )
+        .text(
+          "No monthly finance data available.",
+          content.innerX,
+          y
+        );
+    }
+
+
+    drawFooter(
+      doc,
+      churchSettings
+    );
+
+
+    doc.end();
+  };
+
+
+/*
+|--------------------------------------------------------------------------
+| OVERVIEW REPORT
+|--------------------------------------------------------------------------
+*/
+
+const generateOverviewReportPdf = async (
+  report,
+  res
+) => {
+  const {
+    doc,
+    content,
+    churchSettings,
+  } = await createDocument(
+    "Ministry Overview Report",
+    "ministryflow-overview-report.pdf",
+    res
+  );
+
+  let y = content.innerY;
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | EXECUTIVE SUMMARY
+  |--------------------------------------------------------------------------
+  */
+
+  y = addSectionTitle(
+    doc,
+    "Executive Summary",
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+  y += 5;
+
+
+  y = drawMetricCards(
+    doc,
+
+    [
+      {
+        label: "Total Members",
+        value: report.members ?? 0,
+      },
+
+      {
+        label: "Active Members",
+        value: report.activeMembers ?? 0,
+      },
+
+      {
+        label: "Attendance",
+        value: report.attendance ?? 0,
+      },
+
+      {
+        label: "Events",
+        value: report.events ?? 0,
+      },
+    ],
+
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+
+  y += 18;
+
+
+  y = drawMetricCards(
+    doc,
+
+    [
+      {
+        label: "Donations",
+        value: formatCurrency(
+          report.donations,
+          churchSettings.currency
+        ),
+      },
+
+      {
+        label: "Income",
+        value: formatCurrency(
+          report.income,
+          churchSettings.currency
+        ),
+      },
+
+      {
+        label: "Expenses",
+        value: formatCurrency(
+          report.expenses,
+          churchSettings.currency
+        ),
+      },
+
+      {
+        label: "Balance",
+        value: formatCurrency(
+          report.balance,
+          churchSettings.currency
+        ),
+      },
+    ],
+
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | MEMBERSHIP OVERVIEW
+  |--------------------------------------------------------------------------
+  */
+
+  y += 26;
+
+  y = addSectionTitle(
+    doc,
+    "Membership Overview",
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+  y += 8;
+
+
+  y = drawInfoRow(
+    doc,
+    "Total Members",
+    report.members ?? 0,
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+
+  y = drawInfoRow(
+    doc,
+    "Active Members",
+    report.activeMembers ?? 0,
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+
+  y = drawInfoRow(
+    doc,
+    "Inactive Members",
+    report.inactiveMembers ?? 0,
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | GENDER DISTRIBUTION
+  |--------------------------------------------------------------------------
+  */
+
+  y += 8;
+
+  y = addSectionTitle(
+    doc,
+    "Gender Distribution",
+    content.innerX,
+    y,
+    content.innerWidth
+  );
+
+  y += 5;
+
+
+  if (
+    Array.isArray(
+      report.genderDistribution
+    ) &&
+    report.genderDistribution.length > 0
+  ) {
+    const rows =
+      report.genderDistribution.map(
+        item => [
           formatLabel(item._id),
-          item.count ?? 0,
+          item.count ?? 0
         ]
       );
 
@@ -1163,472 +1998,67 @@ const generateMemberReportPdf = (
 
   /*
   |--------------------------------------------------------------------------
-  | Footer
+  | REPORT INFORMATION
   |--------------------------------------------------------------------------
   */
 
-  drawFooter(doc);
+  y = 650;
 
-
-  doc.end();
-};
-
-
-// ============================================================================
-// ATTENDANCE REPORT
-// ============================================================================
-
-const generateAttendanceReportPdf = (
-  report,
-  res
-) => {
-  const {
+  y = addSectionTitle(
     doc,
-    content,
-  } = createDocument(
-    "Attendance Report",
-    "ministryflow-attendance-report.pdf",
-    res
+    "Report Information",
+    content.innerX,
+    y,
+    content.innerWidth
   );
-
-
-  let y =
-    content.innerY;
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Attendance Summary
-  |--------------------------------------------------------------------------
-  */
-
-  y =
-    addSectionTitle(
-      doc,
-      "Attendance Summary",
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-
-
-  y += 5;
-
-
-  y =
-    drawMetricCards(
-      doc,
-
-      [
-        {
-          label:
-            "Total Attendance",
-
-          value:
-            report.totalAttendance ??
-            0,
-        },
-      ],
-
-      content.innerX,
-
-      y,
-
-      content.innerWidth
-    );
-
-
-  y += 26;
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Service Breakdown
-  |--------------------------------------------------------------------------
-  */
-
-  y =
-    addSectionTitle(
-      doc,
-      "Service Breakdown",
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-
-
-  y += 5;
-
-
-  if (
-    Array.isArray(
-      report.serviceBreakdown
-    ) &&
-    report.serviceBreakdown.length >
-    0
-  ) {
-    const rows =
-      report.serviceBreakdown.map(
-        (item) => [
-          formatLabel(item._id),
-          item.total ?? 0,
-        ]
-      );
-
-
-    drawTable(
-      doc,
-      ["Service", "Attendance"],
-      rows,
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-  } else {
-    doc
-      .font("Helvetica")
-      .fontSize(8.5)
-      .fillColor(COLORS.gray)
-      .text(
-        "No attendance breakdown data available.",
-        content.innerX,
-        y
-      );
-  }
-
-
-  drawFooter(doc);
-
-
-  doc.end();
-};
-
-
-// ============================================================================
-// FINANCE REPORT
-// ============================================================================
-
-const generateFinanceReportPdf = (
-  report,
-  res
-) => {
-  const {
-    doc,
-    content,
-  } = createDocument(
-    "Finance Report",
-    "ministryflow-finance-report.pdf",
-    res
-  );
-
-
-  let y =
-    content.innerY;
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Financial Summary
-  |--------------------------------------------------------------------------
-  */
-
-  y =
-    addSectionTitle(
-      doc,
-      "Financial Summary",
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-
-
-  y += 5;
-
-
-  y =
-    drawMetricCards(
-      doc,
-
-      [
-        {
-          label:
-            "Total Income",
-
-          value:
-            formatCurrency(
-              report.income
-            ),
-        },
-
-        {
-          label:
-            "Total Expenses",
-
-          value:
-            formatCurrency(
-              report.expenses
-            ),
-        },
-
-        {
-          label:
-            "Balance",
-
-          value:
-            formatCurrency(
-              report.balance
-            ),
-        },
-      ],
-
-      content.innerX,
-
-      y,
-
-      content.innerWidth
-    );
-
-
-  y += 26;
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Monthly Finance
-  |--------------------------------------------------------------------------
-  */
-
-  y =
-    addSectionTitle(
-      doc,
-      "Monthly Finance",
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-
-
-  y += 5;
-
-
-  if (
-    Array.isArray(
-      report.monthly
-    ) &&
-    report.monthly.length >
-    0
-  ) {
-    const rows =
-      report.monthly.map(
-        (item) => {
-          const year =
-            item._id?.year ??
-            "";
-
-          const month =
-            item._id?.month ??
-            "";
-
-
-          return [
-            `${month}/${year}`,
-            formatCurrency(
-              item.total
-            ),
-          ];
-        }
-      );
-
-
-    drawTable(
-      doc,
-      ["Period", "Amount"],
-      rows,
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-  } else {
-    doc
-      .font("Helvetica")
-      .fontSize(8.5)
-      .fillColor(COLORS.gray)
-      .text(
-        "No monthly finance data available.",
-        content.innerX,
-        y
-      );
-  }
-
-
-  drawFooter(doc);
-
-
-  doc.end();
-};
-
-
-// ============================================================================
-// OVERVIEW REPORT
-// ============================================================================
-
-const generateOverviewReportPdf = (
-  report,
-  res
-) => {
-  const {
-    doc,
-    content,
-  } = createDocument(
-    "Ministry Overview Report",
-    "ministryflow-overview-report.pdf",
-    res
-  );
-
-
-  let y =
-    content.innerY;
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Ministry Overview
-  |--------------------------------------------------------------------------
-  */
-
-  y =
-    addSectionTitle(
-      doc,
-      "Ministry Overview",
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-
-
-  y += 5;
-
-
-  y =
-    drawMetricCards(
-      doc,
-
-      [
-        {
-          label:
-            "Total Members",
-
-          value:
-            report.members ??
-            0,
-        },
-
-        {
-          label:
-            "Total Events",
-
-          value:
-            report.events ??
-            0,
-        },
-
-        {
-          label:
-            "Total Donations",
-
-          value:
-            formatCurrency(
-              report.donations
-            ),
-        },
-      ],
-
-      content.innerX,
-
-      y,
-
-      content.innerWidth
-    );
-
-
-  y += 28;
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Report Information
-  |--------------------------------------------------------------------------
-  */
-
-  y =
-    addSectionTitle(
-      doc,
-      "Report Information",
-      content.innerX,
-      y,
-      content.innerWidth
-    );
-
 
   y += 8;
 
 
-  y =
-    drawInfoRow(
-      doc,
-      "Church",
-      getChurchName(),
-      content.innerX,
-      y,
-      content.innerWidth
-    );
+  y = drawInfoRow(
+    doc,
+    "Church",
+    churchSettings.churchName,
+    content.innerX,
+    y,
+    content.innerWidth
+  );
 
 
-  y =
-    drawInfoRow(
-      doc,
-      "Report",
-      "Ministry Overview Report",
-      content.innerX,
-      y,
-      content.innerWidth
-    );
+  y = drawInfoRow(
+    doc,
+    "Report",
+    "Ministry Overview Report",
+    content.innerX,
+    y,
+    content.innerWidth
+  );
 
 
-  y =
-    drawInfoRow(
-      doc,
-      "Generated",
-      formatDate(),
-      content.innerX,
-      y,
-      content.innerWidth
-    );
+  y = drawInfoRow(
+    doc,
+    "Generated",
+    formatDate(),
+    content.innerX,
+    y,
+    content.innerWidth
+  );
 
 
   /*
   |--------------------------------------------------------------------------
-  | Footer
+  | FOOTER
   |--------------------------------------------------------------------------
   */
 
-  drawFooter(doc);
+  drawFooter(
+    doc,
+    churchSettings
+  );
 
-
-  /*
-  |--------------------------------------------------------------------------
-  | Finish PDF
-  |--------------------------------------------------------------------------
-  */
 
   doc.end();
 };
-
-
-// ============================================================================
-// EXPORTS
-// ============================================================================
-
 module.exports = {
   generateMemberReportPdf,
   generateAttendanceReportPdf,

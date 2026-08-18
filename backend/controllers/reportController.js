@@ -9,11 +9,15 @@ const {
 
 const { successResponse } = require("../utils/helpers");
 
-// Members
+
+// ================================
+// MEMBER REPORT
+// ================================
 
 const getMemberReport = async (req, res, next) => {
     try {
-        const report = await reportService.getMemberReport();
+        const report =
+            await reportService.getMemberReport();
 
         return successResponse(
             res,
@@ -25,21 +29,38 @@ const getMemberReport = async (req, res, next) => {
     }
 };
 
-const downloadMemberReportPdf = async (req, res, next) => {
-    try {
-        const report = await reportService.getMemberReport();
 
-        generateMemberReportPdf(report, res);
+const downloadMemberReportPdf = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const report =
+            await reportService.getMemberReport();
+
+        await generateMemberReportPdf(
+            report,
+            res
+        );
     } catch (error) {
         next(error);
     }
 };
 
-// Attendance
 
-const getAttendanceReport = async (req, res, next) => {
+// ================================
+// ATTENDANCE REPORT
+// ================================
+
+const getAttendanceReport = async (
+    req,
+    res,
+    next
+) => {
     try {
-        const report = await reportService.getAttendanceReport();
+        const report =
+            await reportService.getAttendanceReport();
 
         return successResponse(
             res,
@@ -51,21 +72,38 @@ const getAttendanceReport = async (req, res, next) => {
     }
 };
 
-const downloadAttendanceReportPdf = async (req, res, next) => {
-    try {
-        const report = await reportService.getAttendanceReport();
 
-        generateAttendanceReportPdf(report, res);
+const downloadAttendanceReportPdf = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const report =
+            await reportService.getAttendanceReport();
+
+        await generateAttendanceReportPdf(
+            report,
+            res
+        );
     } catch (error) {
         next(error);
     }
 };
 
-// Finance
 
-const getFinanceReport = async (req, res, next) => {
+// ================================
+// FINANCE REPORT
+// ================================
+
+const getFinanceReport = async (
+    req,
+    res,
+    next
+) => {
     try {
-        const report = await reportService.getFinanceReport();
+        const report =
+            await reportService.getFinanceReport();
 
         return successResponse(
             res,
@@ -77,21 +115,38 @@ const getFinanceReport = async (req, res, next) => {
     }
 };
 
-const downloadFinanceReportPdf = async (req, res, next) => {
-    try {
-        const report = await reportService.getFinanceReport();
 
-        generateFinanceReportPdf(report, res);
+const downloadFinanceReportPdf = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const report =
+            await reportService.getFinanceReport();
+
+        await generateFinanceReportPdf(
+            report,
+            res
+        );
     } catch (error) {
         next(error);
     }
 };
 
-// Overview
 
-const getOverviewReport = async (req, res, next) => {
+// ================================
+// OVERVIEW REPORT
+// ================================
+
+const getOverviewReport = async (
+    req,
+    res,
+    next
+) => {
     try {
-        const report = await reportService.getOverviewReport();
+        const report =
+            await reportService.getOverviewReport();
 
         return successResponse(
             res,
@@ -103,15 +158,29 @@ const getOverviewReport = async (req, res, next) => {
     }
 };
 
-const downloadOverviewReportPdf = async (req, res, next) => {
-    try {
-        const report = await reportService.getOverviewReport();
 
-        generateOverviewReportPdf(report, res);
+const downloadOverviewReportPdf = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const report =
+            await reportService.getOverviewReport();
+
+        await generateOverviewReportPdf(
+            report,
+            res
+        );
     } catch (error) {
         next(error);
     }
 };
+
+
+// ================================
+// EXPORTS
+// ================================
 
 module.exports = {
     getMemberReport,

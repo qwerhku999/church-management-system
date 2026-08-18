@@ -44,41 +44,124 @@ app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 // Logger
 // =====================================
 
-app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+app.use(
+  morgan(
+    process.env.NODE_ENV === "production"
+      ? "combined"
+      : "dev"
+  )
+);
 
 // =====================================
 // Static Files
 // =====================================
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Makes files inside backend/uploads accessible through:
+// http://localhost:5000/uploads/...
+app.use(
+  "/uploads",
+  express.static(
+    path.join(__dirname, "uploads")
+  )
+);
 
 // =====================================
 // API Documentation
 // =====================================
 
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get("/api/docs.json", (req, res) => res.json(swaggerSpec));
+app.use(
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
+
+app.get("/api/docs.json", (req, res) => {
+  res.json(swaggerSpec);
+});
 
 // =====================================
 // API ROUTES
 // =====================================
 
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/members", require("./routes/memberRoutes"));
-app.use("/api/attendance", require("./routes/attendanceRoutes"));
-app.use("/api/events", require("./routes/eventRoutes"));
-app.use("/api/donations", require("./routes/donationRoutes"));
-app.use("/api/finance", require("./routes/financeRoutes"));
-app.use("/api/dashboard", require("./routes/dashboardRoutes"));
-app.use("/api/ministries", require("./routes/ministryRoutes"));
-app.use("/api/announcements", require("./routes/announcementRoutes"));
-app.use("/api/notifications", require("./routes/notificationRoutes"));
-app.use("/api/documents", require("./routes/documentRoutes"));
-app.use("/api/prayers", require("./routes/prayerRoutes"));
-app.use("/api/visitors", require("./routes/visitorRoutes"));
-app.use("/api/reports", require("./routes/reportRoutes"));
-app.use("/api/church-settings", require("./routes/churchSettingsRoutes"));
+app.use(
+  "/api/auth",
+  require("./routes/authRoutes")
+);
+
+app.use(
+  "/api/users",
+  require("./routes/userRoutes")
+);
+
+app.use(
+  "/api/members",
+  require("./routes/memberRoutes")
+);
+
+app.use(
+  "/api/attendance",
+  require("./routes/attendanceRoutes")
+);
+
+app.use(
+  "/api/events",
+  require("./routes/eventRoutes")
+);
+
+app.use(
+  "/api/donations",
+  require("./routes/donationRoutes")
+);
+
+app.use(
+  "/api/finance",
+  require("./routes/financeRoutes")
+);
+
+app.use(
+  "/api/dashboard",
+  require("./routes/dashboardRoutes")
+);
+
+app.use(
+  "/api/ministries",
+  require("./routes/ministryRoutes")
+);
+
+app.use(
+  "/api/announcements",
+  require("./routes/announcementRoutes")
+);
+
+app.use(
+  "/api/notifications",
+  require("./routes/notificationRoutes")
+);
+
+app.use(
+  "/api/documents",
+  require("./routes/documentRoutes")
+);
+
+app.use(
+  "/api/prayers",
+  require("./routes/prayerRoutes")
+);
+
+app.use(
+  "/api/visitors",
+  require("./routes/visitorRoutes")
+);
+
+app.use(
+  "/api/reports",
+  require("./routes/reportRoutes")
+);
+
+app.use(
+  "/api/church-settings",
+  require("./routes/churchSettingsRoutes")
+);
 
 // =====================================
 // Health Check
@@ -115,17 +198,36 @@ app.use((req, res) => {
 // =====================================
 
 app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || err.status || 500;
-  const isProduction = process.env.NODE_ENV === "production";
+  const statusCode =
+    err.statusCode ||
+    err.status ||
+    500;
 
-  logger.error(err.stack || err.message || err);
+  const isProduction =
+    process.env.NODE_ENV === "production";
+
+  logger.error(
+    err.stack ||
+    err.message ||
+    err
+  );
 
   res.status(statusCode).json({
     success: false,
-    message: statusCode === 500 && isProduction ? "Server Error" : err.message || "Server Error",
-    error: isProduction ? {} : { message: err.message },
+
+    message:
+      statusCode === 500 && isProduction
+        ? "Server Error"
+        : err.message ||
+        "Server Error",
+
+    error: isProduction
+      ? {}
+      : {
+        message:
+          err.message,
+      },
   });
 });
 
 module.exports = app;
-

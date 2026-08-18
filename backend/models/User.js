@@ -24,7 +24,7 @@ const bcrypt = require('bcrypt');
  *           type: string
  *         role:
  *           type: string
- *           enum: [super_admin, admin, pastor, secretary, treasurer, finance_officer, ministry_leader, volunteer, member]
+ *           enum: [super_admin, admin, pastor, secretary, treasurer, ministry_leader, member]
  *         isActive:
  *           type: boolean
  *         createdAt:
@@ -72,9 +72,7 @@ const userSchema = new mongoose.Schema(
         'pastor',
         'secretary',
         'treasurer',
-        'finance_officer',
         'ministry_leader',
-        'volunteer',
         'member',
       ],
       default: 'member',
