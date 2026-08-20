@@ -4,7 +4,10 @@
 
 const dns = require("dns");
 
-dns.setServers(["8.8.8.8", "1.1.1.1"]);
+dns.setServers([
+  "8.8.8.8",
+  "1.1.1.1",
+]);
 
 // ===============================
 // Load and Validate Environment
